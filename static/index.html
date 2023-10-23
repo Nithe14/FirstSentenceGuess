@@ -1,0 +1,89 @@
+<html>
+<head>
+	<title>Booquiz</title>
+    <link rel="stylesheet" href="/static/styles.css">
+	<script type="text/javascript" src="/static/functions.js"></script>
+	<script src="https://unpkg.com/htmx.org@1.9.6"></script>
+</head>
+    <body>
+        
+        <!--book image-->
+        <img class="book2" src="/static/svg/book2.svg" alt="Book2">
+        
+        <!--shelf bar-->
+        <hr class="shelf"/>
+       
+<div class="grid">
+    <div class="circle-grid">
+        <div class="circle-grid-1">
+            <svg class="radial-progress" data-percentage="82" viewBox="0 0 80 80">
+                <circle class="incomplete" cx="40" cy="40" r="20"></circle>
+                <circle class="complete" id='complete-bar' cx="40" cy="40" r="35" style="stroke-dashoffset: 600;"></circle>
+                <text class="percentage" id='points' x="50%" y="60%" transform="matrix(0, 1, -1, 0, 80, 0)">0</text>
+            </svg>
+        </div>
+    </div>
+        <!--sentences box-->
+	<p id="counter"> 1/10 </p>
+        <div class="sentences-grid">
+        <div class="sentences-box" id="content">
+            <img class="quote1" src="/static/svg/quote-1.svg" alt="quote1">
+            <p class="sentences" id="sen"></p>
+            <img class="quote2" src="/static/svg/quote-2.svg" alt="quote2">
+        </div>
+            <!--<input class="give_up" id="button2" type="button" onclick="give_up()" value="Poddaję się"> -->
+            <button class="give_up" id="button2" type="button" onclick="give_up()">
+                    <img class="button_image"src="/static/svg/give_up_button.svg" height="50" alt="give up">
+                    <span class="button_text g_button_text"><strong>Nie wiem</strong></span>
+            </button>
+            <button class="help1" id="help1_button" type="button" onclick="get_help1()">
+                    <img class="button_image"  src="/static/svg/help1.svg" height="50" alt="help1">
+                    <span id="help1" class="button_text help1_button_text"><strong>Gatunek</strong></span>
+            </button>
+            <button class="help2" id="help2_button" type="button" onclick="get_help2()">
+                    <img class="button_image"  src="/static/svg/help2.svg" height="50" alt="help2">
+                    <span id="help2" class="button_text help2_button_text"><strong>Autor</strong></span>
+            </button>
+
+        </div>
+       
+        <form class="user-form" id="frm">
+            <!--<div>&nbsp;</div>-->
+            <input class="user-input" id="field" type="text" name="title" placeholder="Wpisz tytuł">
+            
+            <!--check_book button-->
+            <button class="check_book" id="button1" type="button" onclick="check_book()" hx-get="/api/counter" hx-swap="innerHTML" hx-target="#counter"> 
+                <img class="button_image" src="/static/svg/check_button.svg" height="50" alt="submit"> 
+                <span class="button_text"><strong>Sprawdź</strong></span>
+            </button>
+
+            <button class= "next" id="nextBookButton" type="button" onclick="next_book_test()" value="NextTest">
+                <img class="button_image" src="/static/svg/next-button.svg" height="50" alt="next"/>
+                <span class="button_text d_button_text"><strong>Dalej</strong></span>
+            </button>
+            </form>
+        </div>
+
+        <script >
+            load_cache();
+            set_sentences();
+            var input = document.getElementById("field");
+            input.addEventListener("keypress", function(event) {
+                
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    if (document.getElementById('nextBookButton').style.visibility === 'visible') {
+                        document.getElementById("nextBookButton").click();
+                    }
+                    else {
+                        document.getElementById("button1").click();
+                    }
+                }
+            });
+            var id = questionId ;
+            var max_id = get_max_id(); 
+            
+            save_cache();
+        </script>
+    </body>
+</html>

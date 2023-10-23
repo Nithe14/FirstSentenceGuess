@@ -1,0 +1,40 @@
+<svg width="507" height="111" viewBox="0 0 507 111" fill="none" xmlns="http://www.w3.org/2000/svg">
+<mask id="path-1-inside-1_76_2" fill="white">
+<path d="M0 10C0 4.47715 4.47715 0 10 0H507V111H10C4.47717 111 0 106.523 0 101V10Z"/>
+</mask>
+<path d="M0 10C0 4.47715 4.47715 0 10 0H507V111H10C4.47717 111 0 106.523 0 101V10Z" fill="white"/>
+<path d="M-7 10C-7 0.611159 0.611159 -7 10 -7H507V7H10C8.34315 7 7 8.34315 7 10H-7ZM507 118H10C0.611159 118 -7 110.389 -7 101H7C7 102.657 8.34315 104 10 104H507V118ZM10 118C0.611159 118 -7 110.389 -7 101V10C-7 0.611159 0.611159 -7 10 -7V7C8.34315 7 7 8.34315 7 10V101C7 102.657 8.34315 104 10 104V118ZM507 0V111V0Z" fill="#857070" mask="url(#path-1-inside-1_76_2)"/>
+<line x1="7" y1="9.5" x2="501" y2="9.50004" stroke="black" stroke-opacity="0.14"/>
+<line x1="7" y1="12.5" x2="501" y2="12.5" stroke="black" stroke-opacity="0.14"/>
+<line x1="7" y1="15.5" x2="501" y2="15.5" stroke="black" stroke-opacity="0.14"/>
+<line x1="7" y1="18.5" x2="501" y2="18.5" stroke="black" stroke-opacity="0.14"/>
+<line x1="7" y1="21.5" x2="501" y2="21.5" stroke="black" stroke-opacity="0.14"/>
+<line x1="7" y1="24.5" x2="501" y2="24.5" stroke="black" stroke-opacity="0.14"/>
+<line x1="7" y1="27.5" x2="501" y2="27.5" stroke="black" stroke-opacity="0.14"/>
+<line x1="7" y1="30.5" x2="501" y2="30.5" stroke="black" stroke-opacity="0.14"/>
+<line x1="7" y1="33.5" x2="501" y2="33.5" stroke="black" stroke-opacity="0.14"/>
+<line x1="7" y1="36.5" x2="501" y2="36.5" stroke="black" stroke-opacity="0.14"/>
+<line x1="7" y1="39.5" x2="501" y2="39.5" stroke="black" stroke-opacity="0.14"/>
+<line x1="7" y1="42.5" x2="501" y2="42.5" stroke="black" stroke-opacity="0.14"/>
+<line x1="7" y1="45.5" x2="501" y2="45.5" stroke="black" stroke-opacity="0.14"/>
+<line x1="7" y1="48.5" x2="501" y2="48.5" stroke="black" stroke-opacity="0.14"/>
+<line x1="7" y1="51.5" x2="501" y2="51.5" stroke="black" stroke-opacity="0.14"/>
+<line x1="7" y1="54.5" x2="501" y2="54.5" stroke="black" stroke-opacity="0.14"/>
+<line x1="7" y1="57.5" x2="501" y2="57.5" stroke="black" stroke-opacity="0.14"/>
+<line x1="7" y1="60.5" x2="501" y2="60.5" stroke="black" stroke-opacity="0.14"/>
+<line x1="7" y1="63.5" x2="501" y2="63.5" stroke="black" stroke-opacity="0.14"/>
+<line x1="7" y1="66.5" x2="501" y2="66.5" stroke="black" stroke-opacity="0.14"/>
+<line x1="7" y1="69.5" x2="501" y2="69.5" stroke="black" stroke-opacity="0.14"/>
+<line x1="7" y1="72.5" x2="501" y2="72.5" stroke="black" stroke-opacity="0.14"/>
+<line x1="7" y1="75.5" x2="501" y2="75.5" stroke="black" stroke-opacity="0.14"/>
+<line x1="7" y1="78.5" x2="501" y2="78.5" stroke="black" stroke-opacity="0.14"/>
+<line x1="7" y1="81.5" x2="501" y2="81.5" stroke="black" stroke-opacity="0.14"/>
+<line x1="7" y1="84.5" x2="501" y2="84.5" stroke="black" stroke-opacity="0.14"/>
+<line x1="7" y1="87.5" x2="501" y2="87.5" stroke="black" stroke-opacity="0.14"/>
+<line x1="7" y1="90.5" x2="501" y2="90.5" stroke="black" stroke-opacity="0.14"/>
+<line x1="7" y1="93.5" x2="501" y2="93.5" stroke="black" stroke-opacity="0.14"/>
+<line x1="7" y1="96.5" x2="501" y2="96.5" stroke="black" stroke-opacity="0.14"/>
+<line x1="7" y1="99.5" x2="501" y2="99.5" stroke="black" stroke-opacity="0.14"/>
+<line x1="7" y1="102.5" x2="501" y2="102.5" stroke="black" stroke-opacity="0.14"/>
+<path d="M500 9C500 7.89543 500.895 7 502 7H507V104H502C500.895 104 500 103.105 500 102V9Z" fill="#EDDAD4"/>
+</svg>
