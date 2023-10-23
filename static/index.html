@@ -28,7 +28,7 @@
         <div class="sentences-grid">
         <div class="sentences-box" id="content">
             <img class="quote1" src="/static/svg/quote-1.svg" alt="quote1">
-            <p class="sentences" id="sen"></p>
+            <p class="sentences" id="sen" hx-get="/api/sentences" hx-swap="outerHTML" hx-trigger="load"></p>
             <img class="quote2" src="/static/svg/quote-2.svg" alt="quote2">
         </div>
             <!--<input class="give_up" id="button2" type="button" onclick="give_up()" value="Poddaję się"> -->
