@@ -4,9 +4,9 @@ use actix_session::{storage::CookieSessionStore, Session, SessionMiddleware};
 use actix_web::Error;
 use actix_web::{cookie::Key, get, post, web, App, HttpResponse, HttpServer, Responder};
 use actix_web::{HttpRequest, Result};
+use rand::{distributions::Alphanumeric, Rng};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
-use rand::{distributions::Alphanumeric, Rng};
 
 #[derive(Serialize, Deserialize)]
 struct Book {
@@ -15,6 +15,11 @@ struct Book {
     author: String,
     ganre: String,
     sentences: [String; 3],
+}
+
+#[derive(Debug, Deserialize)]
+pub struct GetReq {
+    next: Option<bool>,
 }
 
 async fn index(_req: HttpRequest) -> Result<NamedFile> {
@@ -26,10 +31,10 @@ async fn index(_req: HttpRequest) -> Result<NamedFile> {
 async fn counter(session: Session) -> Result<String, Error> {
     if let Some(count) = session.get::<i32>("counter")? {
         if count < 10 {
-            session.insert("counter", count + 1)?;
+            let _ = session.insert("counter", count + 1)?;
         }
     } else {
-        session.insert("counter", 1)?;
+        let _ = session.insert("counter", 1)?;
     }
 
     let book_counter = session.get::<i32>("counter")?.unwrap().to_string() + "/10";
@@ -41,8 +46,9 @@ fn generate_placeholder(input: &str) -> String {
     let mut placeholder = String::new();
 
     for word in words {
-    let rng = rand::thread_rng();
-        let random_word: String = rng.sample_iter(&Alphanumeric)
+        let rng = rand::thread_rng();
+        let random_word: String = rng
+            .sample_iter(&Alphanumeric)
             .take(word.len())
             .map(char::from)
             .collect();
@@ -60,7 +66,7 @@ fn generate_placeholder(input: &str) -> String {
 }
 
 #[get("/api/sentences")]
-async fn sentences(session: Session) -> Result<String, Error> {
+async fn sentences(session: Session, params: web::Query<GetReq>) -> Result<String, Error> {
     let  book = Book {
         title: "Niespokojni ludzie".to_string(),
         title_en: "They both die at the end".to_string(),
@@ -69,25 +75,21 @@ async fn sentences(session: Session) -> Result<String, Error> {
         sentences: ["Przestępczy geniusz <i> IMIĘ NAZWISKO </i> otrzymuje ofertę wzbogacenia się ponad wszelkie wyobrażenie – wystarczy w tym celu wykonać zadanie, która z pozoru wydaje się niewykonalne: <br>".to_string(), "– włamać się do niesławnego <i> MIEJSCA </i> (niezdobytej wojskowej twierdzy) <br>".to_string(), "– uwolnić zakładnika (a ten może rozpętać magiczne piekło, które pochłonie cały świat).".to_string()],
     };
 
-
     let sentence2_placeholder = generate_placeholder(&book.sentences[1]);
-    let sentence3_placeholder =  generate_placeholder(&book.sentences[2]);
+    let sentence3_placeholder = generate_placeholder(&book.sentences[2]);
 
     let state = session.get::<i32>("sentences_state")?.unwrap_or(1);
 
-    if state < 3 {
-        session.insert("sentences_state", state + 1);
-    } else {
-        session.insert("sentences_state", 1);
+    if params.next.unwrap_or(false) == true && state < 3 {
+        let _ = session.insert("sentences_state", state + 1);
+    } else if params.next.unwrap_or(false) == true {
+        let _ = session.insert("sentences_state", 1);
     }
-
-    match state {
-        1 => Ok(format!("<p class=\"sentences\" id=\"sen\">{} <blur hx-get=\"/api/sentences\" hx-swap=\"outerHTML\" hx-target=\"#sen\">{}</blur><blur> {}</blur></p>", book.sentences[0], sentence2_placeholder, sentence3_placeholder)),
-        2 => Ok(format!("<p class=\"sentences\" id=\"sen\">{} {} <blur hx-get=\"/api/sentences\" hx-swap=\"outerHTML\" hx-target=\"#sen\">{}</blur></p>", book.sentences[0], book.sentences[1], sentence3_placeholder)),
-        _ => Ok(format!("<p class=\"sentences\" id=\"sen\">{} {} {}</p>", book.sentences[0], book.sentences[1], book.sentences[2])),
+    match session.get::<i32>("sentences_state")?.unwrap_or(1) {
+        2 => Ok(format!("<p class=\"sentences\" id=\"sen\">{} {} <blur hx-get=\"/api/sentences?next=true\" hx-swap=\"outerHTML\" hx-target=\"#sen\">{}</blur></p>", book.sentences[0], book.sentences[1], sentence3_placeholder)),
+        3 => Ok(format!("<p class=\"sentences\" id=\"sen\">{} {} {}</p>", book.sentences[0], book.sentences[1], book.sentences[2])),
+        _ => Ok(format!("<p class=\"sentences\" id=\"sen\">{} <blur hx-get=\"/api/sentences?next=true\" hx-swap=\"outerHTML\" hx-target=\"#sen\">{}</blur><blur> {}</blur></p>", book.sentences[0], sentence2_placeholder, sentence3_placeholder)),
     }
-
-    
 }
 
 #[actix_web::main]
