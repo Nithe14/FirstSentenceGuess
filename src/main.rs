@@ -49,7 +49,7 @@ fn read_db(n: usize) -> Result<Book, Box<dyn std::error::Error>> {
             "Out of index! Book not found.",
         )));
     }
-    Ok(books[3].clone())
+    Ok(books[n].clone())
 }
 
 fn generate_placeholder(input: &str) -> String {
