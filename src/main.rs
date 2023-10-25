@@ -49,7 +49,7 @@ fn read_db(n: usize) -> Result<Book, Box<dyn std::error::Error>> {
             "Out of index! Book not found.",
         )));
     }
-    Ok(books[n].clone())
+    Ok(books[3].clone())
 }
 
 fn generate_placeholder(input: &str) -> String {
@@ -86,8 +86,10 @@ async fn sentences(session: Session, params: web::Query<GetReq>) -> Result<Strin
             book = value;
         }
         Err(error) => {
-            book = Book::empty();
             eprint!("ERROR: {:?}", error);
+            return Ok(
+                "<p class=\"sentences\" id=\"sen\">Oops! Something went wrong.</p>".to_string(),
+            );
         }
     }
 
