@@ -1,26 +1,23 @@
+mod book;
+mod requests;
+
 use actix_files as fs;
 use actix_files::NamedFile;
 use actix_session::{storage::CookieSessionStore, Session, SessionMiddleware};
-use actix_web::Error;
-use actix_web::{cookie::Key, get, post, web, App, HttpResponse, HttpServer, Responder};
-use actix_web::{HttpRequest, Result};
+use actix_web::{
+    cookie::Key, get, post, web, App, Error, HttpRequest, HttpResponse, HttpServer, Responder,
+    Result,
+};
+use book::Book;
 use rand::{distributions::Alphanumeric, Rng};
-use serde::{Deserialize, Serialize};
+use requests::GetReq;
+use serde_json;
+use std::fs::File;
+use std::io::{Error as IoError, Read};
 use std::path::PathBuf;
 
-#[derive(Serialize, Deserialize)]
-struct Book {
-    title: String,
-    title_en: String,
-    author: String,
-    ganre: String,
-    sentences: [String; 3],
-}
-
-#[derive(Debug, Deserialize)]
-pub struct GetReq {
-    next: Option<bool>,
-}
+#[macro_use]
+extern crate serde;
 
 async fn index(_req: HttpRequest) -> Result<NamedFile> {
     let path: PathBuf = "./static/index.html".parse().unwrap();
@@ -29,16 +26,30 @@ async fn index(_req: HttpRequest) -> Result<NamedFile> {
 
 #[get("/api/counter")]
 async fn counter(session: Session) -> Result<String, Error> {
-    if let Some(count) = session.get::<i32>("counter")? {
+    if let Some(count) = session.get::<usize>("counter")? {
         if count < 10 {
             let _ = session.insert("counter", count + 1)?;
         }
     } else {
-        let _ = session.insert("counter", 1)?;
+        let _ = session.insert("counter", 0)?;
     }
 
-    let book_counter = session.get::<i32>("counter")?.unwrap().to_string() + "/10";
-    Ok(book_counter)
+    let book_counter = session.get::<usize>("counter")?.unwrap() + 1;
+    Ok(book_counter.to_string() + "/10")
+}
+
+fn read_db(n: usize) -> Result<Book, Box<dyn std::error::Error>> {
+    let mut file = File::open("db.json")?;
+    let mut data = String::new();
+    file.read_to_string(&mut data)?;
+    let books: Vec<Book> = serde_json::from_str(&data)?;
+    if n > books.len() {
+        return Err(Box::new(IoError::new(
+            std::io::ErrorKind::Other,
+            "Out of index! Book not found.",
+        )));
+    }
+    Ok(books[n].clone())
 }
 
 fn generate_placeholder(input: &str) -> String {
@@ -67,13 +78,18 @@ fn generate_placeholder(input: &str) -> String {
 
 #[get("/api/sentences")]
 async fn sentences(session: Session, params: web::Query<GetReq>) -> Result<String, Error> {
-    let  book = Book {
-        title: "Niespokojni ludzie".to_string(),
-        title_en: "They both die at the end".to_string(),
-        author: "Adam Silvera".to_string(),
-        ganre: "fantastyka".to_string(),
-        sentences: ["Przestępczy geniusz <i> IMIĘ NAZWISKO </i> otrzymuje ofertę wzbogacenia się ponad wszelkie wyobrażenie – wystarczy w tym celu wykonać zadanie, która z pozoru wydaje się niewykonalne: <br>".to_string(), "– włamać się do niesławnego <i> MIEJSCA </i> (niezdobytej wojskowej twierdzy) <br>".to_string(), "– uwolnić zakładnika (a ten może rozpętać magiczne piekło, które pochłonie cały świat).".to_string()],
-    };
+    let count = session.get::<usize>("counter")?.unwrap_or(0);
+    let db_response = read_db(count);
+    let book: Book;
+    match db_response {
+        Ok(value) => {
+            book = value;
+        }
+        Err(error) => {
+            book = Book::empty();
+            eprint!("ERROR: {:?}", error);
+        }
+    }
 
     let sentence2_placeholder = generate_placeholder(&book.sentences[1]);
     let sentence3_placeholder = generate_placeholder(&book.sentences[2]);
