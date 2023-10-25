@@ -1,6 +1,6 @@
 <html>
 <head>
-	<title>Booquiz</title>
+	<title>First Sentence Guess</title>
     <link rel="stylesheet" href="/static/styles.css">
 	<script type="text/javascript" src="/static/functions.js"></script>
 	<script src="https://unpkg.com/htmx.org@1.9.6"></script>
@@ -31,59 +31,37 @@
             <p class="sentences" id="sen" hx-get="/api/sentences" hx-swap="outerHTML" hx-trigger="load"></p>
             <img class="quote2" src="/static/svg/quote-2.svg" alt="quote2">
         </div>
-            <!--<input class="give_up" id="button2" type="button" onclick="give_up()" value="Poddaję się"> -->
-            <button class="give_up" id="button2" type="button" onclick="give_up()">
+	    <button class="give_up" id="button2" type="button"> 
                     <img class="button_image"src="/static/svg/give_up_button.svg" height="50" alt="give up">
                     <span class="button_text g_button_text"><strong>Nie wiem</strong></span>
             </button>
-            <button class="help1" id="help1_button" type="button" onclick="get_help1()">
+	    <button class="help1" id="help1_button" type="button"> 
                     <img class="button_image"  src="/static/svg/help1.svg" height="50" alt="help1">
                     <span id="help1" class="button_text help1_button_text"><strong>Gatunek</strong></span>
             </button>
-            <button class="help2" id="help2_button" type="button" onclick="get_help2()">
+	    <button class="help2" id="help2_button" type="button"> 
                     <img class="button_image"  src="/static/svg/help2.svg" height="50" alt="help2">
                     <span id="help2" class="button_text help2_button_text"><strong>Autor</strong></span>
             </button>
 
         </div>
        
-        <form class="user-form" id="frm">
+        <form class="user-form" id="frm" hx-post="/api/check-book" hx-target="#sen" hx-swap="innerHTML">
             <!--<div>&nbsp;</div>-->
             <input class="user-input" id="field" type="text" name="title" placeholder="Wpisz tytuł">
             
             <!--check_book button-->
-            <button class="check_book" id="button1" type="button" onclick="check_book()" hx-get="/api/counter" hx-swap="innerHTML" hx-target="#counter"> 
+            <button class="check_book" id="button1" type="button"  hx-get="/api/counter" hx-swap="innerHTML" hx-target="#counter"> 
                 <img class="button_image" src="/static/svg/check_button.svg" height="50" alt="submit"> 
                 <span class="button_text"><strong>Sprawdź</strong></span>
             </button>
 
-            <button class= "next" id="nextBookButton" type="button" onclick="next_book_test()" value="NextTest">
+            <button class= "next" id="nextBookButton" type="button"  value="NextTest">
                 <img class="button_image" src="/static/svg/next-button.svg" height="50" alt="next"/>
                 <span class="button_text d_button_text"><strong>Dalej</strong></span>
             </button>
             </form>
         </div>
 
-        <script >
-            load_cache();
-            set_sentences();
-            var input = document.getElementById("field");
-            input.addEventListener("keypress", function(event) {
-                
-                if (event.key === "Enter") {
-                    event.preventDefault();
-                    if (document.getElementById('nextBookButton').style.visibility === 'visible') {
-                        document.getElementById("nextBookButton").click();
-                    }
-                    else {
-                        document.getElementById("button1").click();
-                    }
-                }
-            });
-            var id = questionId ;
-            var max_id = get_max_id(); 
-            
-            save_cache();
-        </script>
     </body>
 </html>

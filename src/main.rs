@@ -52,6 +52,33 @@ fn read_db(n: usize) -> Result<Book, Box<dyn std::error::Error>> {
     Ok(books[n].clone())
 }
 
+#[derive(Deserialize)]
+struct FormData {
+    title: String,
+}
+
+#[post("/api/check-book")]
+async fn check_book(session: Session, form: web::Form<FormData>) -> Result<HttpResponse, Error> {
+     
+    let count = session.get::<usize>("counter")?.unwrap_or(0);
+    let db_response = read_db(count);
+    let book: Book;
+    match db_response {
+        Ok(value) => {
+            book = value;
+        }
+        Err(error) => {
+            book = Book::empty();
+            eprint!("ERROR: {:?}", error);
+        }
+    }
+    if book.title.to_lowercase() == form.title.to_lowercase() {
+        return Ok(HttpResponse::Ok().body("<p class=\"sentences\" id=\"#sen\">Dobrze!</p>"))
+    }
+
+    Ok(HttpResponse::Ok().insert_header(("HX-Retarget","#field")).insert_header(("HX-Reswap", "outerHTML")).body(format!("<input class=\"user-input apply-shake\" id=\"field\" type=\"text\" name=\"title\" placeholder=\"Wpisz tytuł\">")))
+}
+
 fn generate_placeholder(input: &str) -> String {
     let words: Vec<&str> = input.split(' ').collect();
     let mut placeholder = String::new();
@@ -122,6 +149,7 @@ async fn main() -> std::io::Result<()> {
             )
             .service(counter)
             .service(sentences)
+            .service(check_book)
             .service(fs::Files::new("/static", "static"))
             .service(fs::Files::new("/static/svg", "static/css"))
             .route("/", web::get().to(index))
