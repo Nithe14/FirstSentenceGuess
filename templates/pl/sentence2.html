@@ -1,0 +1,1 @@
+<p class="sentences" id="sen" hx-trigger="newBook from:body">{{sentence1 | safe}} {{sentence2 | safe}} <blur hx-get="/api/sentences?next=true" hx-swap="outerHTML" hx-target="#sen" >{{sentence3 | safe}}</blur></p>

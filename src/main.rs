@@ -12,6 +12,7 @@ use book::Book;
 use rand::{distributions::Alphanumeric, Rng};
 use requests::{FormData, GetReq};
 use serde_json;
+use std::fmt::format;
 use std::fs::File;
 use std::io::{Error as IoError, Read};
 use std::path::PathBuf;
@@ -30,10 +31,10 @@ fn read_db(n: usize) -> Result<Book, Box<dyn std::error::Error>> {
     let mut data = String::new();
     file.read_to_string(&mut data)?;
     let books: Vec<Book> = serde_json::from_str(&data)?;
-    if n > books.len() {
+    if n >= books.len() {
         return Err(Box::new(IoError::new(
             std::io::ErrorKind::Other,
-            "Out of index! Book not found.",
+            format!("Out of index [{}]! Book not found.", n),
         )));
     }
     Ok(books[n].clone())
@@ -52,9 +53,9 @@ fn get_template(template: &str, context: Context) -> Result<String, Box<dyn std:
 }
 
 #[get("/api/counter")]
-async fn counter(session: Session) -> Result<String, Error> {
+async fn counter(session: Session) -> Result<HttpResponse, Error> {
     if let Some(count) = session.get::<usize>("counter")? {
-        if count < 10 {
+        if count < 2 {
             let _ = session.insert("counter", count + 1)?;
         }
     } else {
@@ -62,7 +63,10 @@ async fn counter(session: Session) -> Result<String, Error> {
     }
 
     let book_counter = session.get::<usize>("counter")?.unwrap() + 1;
-    Ok(book_counter.to_string() + "/10")
+    Ok(HttpResponse::Ok()
+        .insert_header(("HX-Trigger", "newBook"))
+        .body(format!("{}/10", book_counter.to_string())))
+    //Ok(book_counter.to_string() + "/10")
 }
 
 #[post("/api/check-book")]
@@ -124,6 +128,7 @@ async fn sentences(session: Session, params: web::Query<GetReq>) -> Result<Strin
     let count = session.get::<usize>("counter")?.unwrap_or(0);
     let db_response = read_db(count);
     let book: Book;
+    let mut context = Context::new();
     match db_response {
         Ok(value) => {
             book = value;
@@ -145,9 +150,24 @@ async fn sentences(session: Session, params: web::Query<GetReq>) -> Result<Strin
         let _ = session.insert("sentences_state", 1);
     }
     match session.get::<i32>("sentences_state")?.unwrap_or(1) {
-        2 => Ok(format!("<p class=\"sentences\" id=\"sen\">{} {} <blur hx-get=\"/api/sentences?next=true\" hx-swap=\"outerHTML\" hx-target=\"#sen\">{}</blur></p>", book.sentences[0], book.sentences[1], sentence3_placeholder)),
-        3 => Ok(format!("<p class=\"sentences\" id=\"sen\">{} {} {}</p>", book.sentences[0], book.sentences[1], book.sentences[2])),
-        _ => Ok(format!("<p class=\"sentences\" id=\"sen\">{} <blur hx-get=\"/api/sentences?next=true\" hx-swap=\"outerHTML\" hx-target=\"#sen\">{}</blur><blur> {}</blur></p>", book.sentences[0], sentence2_placeholder, sentence3_placeholder)),
+        2 => {
+            context.insert("sentence1", &book.sentences[0]);
+            context.insert("sentence2", &book.sentences[1]);
+            context.insert("sentence3", &sentence3_placeholder);
+            return Ok(get_template("sentence2.html", context)?);
+        }
+        3 => {
+            context.insert("sentence1", &book.sentences[0]);
+            context.insert("sentence2", &book.sentences[1]);
+            context.insert("sentence3", &book.sentences[2]);
+            return Ok(get_template("sentence3.html", context)?);
+        }
+        _ => {
+            context.insert("sentence1", &book.sentences[0]);
+            context.insert("sentence2", &sentence2_placeholder);
+            context.insert("sentence3", &sentence3_placeholder);
+            return Ok(get_template("sentence1.html", context)?);
+        }
     }
 }
 

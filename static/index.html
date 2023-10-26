@@ -24,11 +24,11 @@
         </div>
     </div>
         <!--sentences box-->
-	<p id="counter"> 1/10 </p>
+	<p id="counter" hx-get="/api/counter" style="cursor: pointer" hx-trigger="load, click"> 1/10 </p>
         <div class="sentences-grid">
         <div class="sentences-box" id="content">
             <img class="quote1" src="/static/svg/quote-1.svg" alt="quote1">
-            <p class="sentences" id="sen" hx-get="/api/sentences" hx-swap="outerHTML" hx-trigger="load"></p>
+            <p class="sentences" id="sen" hx-get="/api/sentences" hx-swap="outerHTML" hx-trigger="load, newBook from:body"></p>
             <img class="quote2" src="/static/svg/quote-2.svg" alt="quote2">
         </div>
 	    <button class="give_up" id="button2" type="button"> 
