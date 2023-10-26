@@ -15,6 +15,7 @@ use serde_json;
 use std::fs::File;
 use std::io::{Error as IoError, Read};
 use std::path::PathBuf;
+use tera::{Context, Tera};
 
 #[macro_use]
 extern crate serde;
@@ -22,20 +23,6 @@ extern crate serde;
 async fn index(_req: HttpRequest) -> Result<NamedFile> {
     let path: PathBuf = "./static/index.html".parse().unwrap();
     Ok(NamedFile::open(path)?)
-}
-
-#[get("/api/counter")]
-async fn counter(session: Session) -> Result<String, Error> {
-    if let Some(count) = session.get::<usize>("counter")? {
-        if count < 10 {
-            let _ = session.insert("counter", count + 1)?;
-        }
-    } else {
-        let _ = session.insert("counter", 0)?;
-    }
-
-    let book_counter = session.get::<usize>("counter")?.unwrap() + 1;
-    Ok(book_counter.to_string() + "/10")
 }
 
 fn read_db(n: usize) -> Result<Book, Box<dyn std::error::Error>> {
@@ -52,6 +39,32 @@ fn read_db(n: usize) -> Result<Book, Box<dyn std::error::Error>> {
     Ok(books[n].clone())
 }
 
+fn get_template(template: &str, context: Context) -> Result<String, Box<dyn std::error::Error>> {
+    let mut tera = match Tera::parse("templates/pl/*") {
+        Ok(t) => t,
+        Err(e) => {
+            eprint!("Parsing error(s): {}", e);
+            return Ok("Oops! Something went wrong.".to_string());
+        }
+    };
+    tera.build_inheritance_chains()?;
+    Ok(tera.render(template, &context).unwrap())
+}
+
+#[get("/api/counter")]
+async fn counter(session: Session) -> Result<String, Error> {
+    if let Some(count) = session.get::<usize>("counter")? {
+        if count < 10 {
+            let _ = session.insert("counter", count + 1)?;
+        }
+    } else {
+        let _ = session.insert("counter", 0)?;
+    }
+
+    let book_counter = session.get::<usize>("counter")?.unwrap() + 1;
+    Ok(book_counter.to_string() + "/10")
+}
+
 #[derive(Deserialize)]
 struct FormData {
     title: String,
@@ -59,10 +72,11 @@ struct FormData {
 
 #[post("/api/check-book")]
 async fn check_book(session: Session, form: web::Form<FormData>) -> Result<HttpResponse, Error> {
-     
     let count = session.get::<usize>("counter")?.unwrap_or(0);
     let db_response = read_db(count);
     let book: Book;
+    let mut context = Context::new();
+    let render: Result<_, _>;
     match db_response {
         Ok(value) => {
             book = value;
@@ -73,10 +87,17 @@ async fn check_book(session: Session, form: web::Form<FormData>) -> Result<HttpR
         }
     }
     if book.title.to_lowercase() == form.title.to_lowercase() {
-        return Ok(HttpResponse::Ok().body("<p class=\"sentences\" id=\"#sen\">Dobrze!</p>"))
+        context.insert("title", &book.title);
+        context.insert("author", &book.author);
+        render = get_template("correct.html", context);
+        return Ok(HttpResponse::Ok().body(render?));
     }
 
-    Ok(HttpResponse::Ok().insert_header(("HX-Retarget","#field")).insert_header(("HX-Reswap", "outerHTML")).body(format!("<input class=\"user-input apply-shake\" id=\"field\" type=\"text\" name=\"title\" placeholder=\"Wpisz tytuł\">")))
+    render = get_template("wrong.html", context);
+    Ok(HttpResponse::Ok()
+        .insert_header(("HX-Retarget", "#field"))
+        .insert_header(("HX-Reswap", "outerHTML"))
+        .body(render?))
 }
 
 fn generate_placeholder(input: &str) -> String {
@@ -114,9 +135,7 @@ async fn sentences(session: Session, params: web::Query<GetReq>) -> Result<Strin
         }
         Err(error) => {
             eprint!("ERROR: {:?}", error);
-            return Ok(
-                "<p class=\"sentences\" id=\"sen\">Oops! Something went wrong.</p>".to_string(),
-            );
+            return Ok("Oops! Something went wrong.".to_string());
         }
     }
 
