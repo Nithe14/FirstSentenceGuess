@@ -12,7 +12,6 @@ use book::Book;
 use rand::{distributions::Alphanumeric, Rng};
 use requests::{FormData, GetReq};
 use serde_json;
-use std::fmt::format;
 use std::fs::File;
 use std::io::{Error as IoError, Read};
 use std::path::PathBuf;
@@ -24,6 +23,15 @@ extern crate serde;
 async fn index(_req: HttpRequest) -> Result<NamedFile> {
     let path: PathBuf = "./static/index.html".parse().unwrap();
     Ok(NamedFile::open(path)?)
+}
+
+fn db_len() -> Result<usize, Box<dyn std::error::Error>> {
+    let mut file = File::open("db.json")?;
+    let mut data = String::new();
+    file.read_to_string(&mut data)?;
+    let books: Vec<Book> = serde_json::from_str(&data)?;
+
+    Ok(books.len())
 }
 
 fn read_db(n: usize) -> Result<Book, Box<dyn std::error::Error>> {
@@ -54,19 +62,19 @@ fn get_template(template: &str, context: Context) -> Result<String, Box<dyn std:
 
 #[get("/api/counter")]
 async fn counter(session: Session) -> Result<HttpResponse, Error> {
+    let db_size = db_len().unwrap_or(0);
     if let Some(count) = session.get::<usize>("counter")? {
-        if count < 2 {
-            let _ = session.insert("counter", count + 1)?;
-        }
+        if count < db_size - 1 {
+            session.insert("counter", count + 1)?;
+        } 
     } else {
-        let _ = session.insert("counter", 0)?;
+        session.insert("counter", 0)?;
     }
 
-    let book_counter = session.get::<usize>("counter")?.unwrap() + 1;
+    let book_counter = session.get::<usize>("counter")?.unwrap();
     Ok(HttpResponse::Ok()
         .insert_header(("HX-Trigger", "newBook"))
-        .body(format!("{}/10", book_counter.to_string())))
-    //Ok(book_counter.to_string() + "/10")
+        .body(format!("{}/10", book_counter + 1)))
 }
 
 #[post("/api/check-book")]
