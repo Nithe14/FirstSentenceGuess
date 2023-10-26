@@ -10,7 +10,7 @@ use actix_web::{
 };
 use book::Book;
 use rand::{distributions::Alphanumeric, Rng};
-use requests::GetReq;
+use requests::{FormData, GetReq};
 use serde_json;
 use std::fs::File;
 use std::io::{Error as IoError, Read};
@@ -63,11 +63,6 @@ async fn counter(session: Session) -> Result<String, Error> {
 
     let book_counter = session.get::<usize>("counter")?.unwrap() + 1;
     Ok(book_counter.to_string() + "/10")
-}
-
-#[derive(Deserialize)]
-struct FormData {
-    title: String,
 }
 
 #[post("/api/check-book")]
