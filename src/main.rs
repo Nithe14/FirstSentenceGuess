@@ -62,11 +62,11 @@ fn get_template(template: &str, context: Context) -> Result<String, Box<dyn std:
 
 #[get("/api/counter")]
 async fn counter(session: Session) -> Result<HttpResponse, Error> {
-    let db_size = db_len().unwrap_or(0);
+    let db_size = db_len()?;
     if let Some(count) = session.get::<usize>("counter")? {
         if count < db_size - 1 {
             session.insert("counter", count + 1)?;
-        } 
+        }
     } else {
         session.insert("counter", 0)?;
     }
