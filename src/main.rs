@@ -77,6 +77,13 @@ async fn counter(session: Session) -> Result<HttpResponse, Error> {
         .body(format!("{}/10", book_counter + 1)))
 }
 
+#[get("/api/new-book")]
+async fn new_book(session: Session) -> Result<HttpResponse, Error> {
+    let _ = session.insert("sentences_state", 1);
+    let render = get_template("index.html", Context::new());
+    Ok(HttpResponse::Ok().body(render?))
+}
+
 #[post("/api/check-book")]
 async fn check_book(session: Session, form: web::Form<FormData>) -> Result<HttpResponse, Error> {
     let count = session.get::<usize>("counter")?.unwrap_or(0);
@@ -192,6 +199,7 @@ async fn main() -> std::io::Result<()> {
             .service(counter)
             .service(sentences)
             .service(check_book)
+            .service(new_book)
             .service(fs::Files::new("/static", "static"))
             .service(fs::Files::new("/static/svg", "static/css"))
             .route("/", web::get().to(index))
