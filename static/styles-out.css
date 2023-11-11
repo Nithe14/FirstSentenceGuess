@@ -684,6 +684,10 @@ video {
   margin-top: 0.5rem;
 }
 
+.mb-24 {
+  margin-bottom: 6rem;
+}
+
 .block {
   display: block;
 }
@@ -888,6 +892,10 @@ video {
 
 .pr-4 {
   padding-right: 1rem;
+}
+
+.pb-24 {
+  padding-bottom: 6rem;
 }
 
 .align-top {

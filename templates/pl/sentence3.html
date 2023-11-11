@@ -1,1 +1,1 @@
-<p class="sentences" id="sen" hx-get="/api/sentences" hx-swap="outerHTML" hx-target="#sen" hx-trigger="newBook from:body">{{sentence1 | safe}} {{sentence2 | safe}} {{sentence3}}</p>
+<p class="inline" id="sen" hx-get="/api/sentences" hx-swap="innerHTML" hx-target="#sen" hx-trigger="newBook from:body">{{sentence1}} </p><p class="inline"> {{sentence2}}</p> <p class="inline"> {{sentence3}}</p>

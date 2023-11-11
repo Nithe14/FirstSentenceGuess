@@ -21,7 +21,7 @@ use tera::{Context, Tera};
 extern crate serde;
 
 async fn index(_req: HttpRequest) -> Result<NamedFile> {
-    let path: PathBuf = "./static/index.html".parse().unwrap();
+    let path: PathBuf = "./static/index-new.html".parse().unwrap();
     Ok(NamedFile::open(path)?)
 }
 

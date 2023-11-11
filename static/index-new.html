@@ -4,12 +4,13 @@
       <meta charset="UTF-8" />
       <meta http-equiv="X-UA-Compatible" content="IE=edge" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <link href="styles-out.css" rel="stylesheet">
+      <link href="/static/styles-out.css" rel="stylesheet">
       <title>First Sentence Guess</title>
       <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.7.3/dist/alpine.min.js" defer></script>
+      <script src="https://unpkg.com/htmx.org@1.9.6"></script>
    </head>
    <body class="bg-light-pink font-['Times New Roman'], font-serif">
-        <img class="block mt-12 mb-0 ml-auto mr-auto" src="svg/book2.svg" alt="Book2">
+        <img class="block mt-12 mb-0 ml-auto mr-auto" src="/static/svg/book2.svg" alt="Book2">
         
         <hr class="w-full border-0 h-1.5 bg-dark-pink"/>
 
@@ -50,38 +51,38 @@
 	    <div class="col-span-2 row-span-5 col-start-2 row-start-2 self-center bg-white rounded-[14px] shadow-lg z-10 min-h-full grid grid-cols-12 grid-rows-2 gap-4">
 
 		<!--quote1-->
-            	<img class="pt-4 pl-4 self-start align-bottom inline-block col-start-1 row-start-1" src="svg/quote-1.svg" alt="quote1">
+            	<img class="pt-4 pl-4 self-start align-bottom inline-block col-start-1 row-start-1" src="/static/svg/quote-1.svg" alt="quote1">
 		
 		<!--sentences-->
-		<div class="pt-12 pb-12 text-[2rem] col-span-10 row-span-2 col-start-2 row-start-1 z-40">
-			<p class="inline">Lorem impsum lorem ispeum. </p><p class="inline blur-[9px] hover:blur-[6px] hover:cursor-pointer z-40"> Lorem ipsum lorem ipsum lorem ipsum.</p> <p class="inline blur-[9px] hover:blur-[6px] hover:cursor-pointer"> Lorem ipsum Lorem ipsum lorem ipsum.</p>
+		<div id= "sen" class="pt-12 pb-12 text-[2rem] col-span-10 row-span-2 col-start-2 row-start-1 z-40" hx-get="/api/sentences" hx-swap="innerHTML" hx-trigger="load newBook from:body">
+			<p class="inline" hx-get="/api/sentences" hx-swap="innerHTML" hx-target="#sen" hx-trigger="load newBook from:body">{{sentence1}} </p><p class="inline blur-[9px] hover:blur-[6px] hover:cursor-pointer z-40" hx-get="/api/sentences?next=true" hx-swap="innerHTML" hx-target="#sen" >{{sentence2}}</p><p class="inline blur-[9px] hover:blur-[6px] hover:cursor-pointer"> {{sentence3}}</p>
 		</div>
 
 		<!--quote2-->
-            	<img class="pb-4 pr-4 self-end align-top col-start-12 row-start-2" src="svg/quote-2.svg" alt="quote2">
+            	<img class="pb-4 pr-4 self-end align-top col-start-12 row-start-2" src="/static/svg/quote-2.svg" alt="quote2">
 	    </div>
 
 	    <!--give-up button-->
 	    <div class="text-white col-start-4 row-start-2 -ml-28 mt-2 transition-transform transform hover:translate-x-20 duration-500 z-0 hover:cursor-pointer" type="button"> 
-                    <img src="svg/give_up_button.svg" height="50" alt="give up">
+                    <img src="/static/svg/give_up_button.svg" height="50" alt="give up">
                     <span class="absolute text-white px-6 py-0 top-1/4 ">Nie wiem</span>
             </div>
 
 	    <!--help1 button-->
 	    <div class="text-white col-start-4  row-start-4 -ml-48 transition-transform transform hover:translate-x-20 duration-500 z-0 hover:cursor-pointer" type="button"> 
-                    <img src="svg/help1.svg" height="50" alt="give up">
+                    <img src="/static/svg/help1.svg" height="50" alt="give up">
                     <span class="absolute text-white px-28 py-0 top-1/4 ">Gatunek</span>
             </div>
 
 	    <!--help2 button-->
 	    <div class="text-white col-start-4  row-start-5 -ml-48 transition-transform transform hover:translate-x-20 duration-500 z-0 hover:cursor-pointer" type="button"> 
-                    <img src="svg/help2.svg" height="50" alt="give up">
+                    <img src="/static/svg/help2.svg" height="50" alt="give up">
                     <span class="absolute text-white px-28 py-0 top-1/4 -ml-1">Autor</span>
             </div>
         </div>
 
 	<!--user input grid-->
-	<div class="w-full grid grid-cols-4 grid-rows-1 gap-4 pt-10 overflow-hidden">
+	<div class="w-full grid grid-cols-4 grid-rows-1 gap-4 pt-10 pb-24 overflow-hidden">
 
 		<!--form-->
         	<form class="col-span-2 col-start-2 self-center bg-white rounded-[14px] shadow-lg z-10 min-h-full" id="frm" hx-post="/api/check-book" hx-target="#main" hx-swap="innerHTML">
@@ -90,7 +91,7 @@
 
 		<!--check_book button-->
         	<div class="col-start-4 -ml-28 transition-transform transform hover:translate-x-20 duration-500 z-0 hover:cursor-pointer" id="button1" type="button"  hx-get="/api/counter" hx-swap="innerHTML" hx-target="#counter"> 
-        	    <img class="button_image" src="svg/check_button.svg" height="50" alt="submit"> 
+        	    <img class="button_image" src="/static/svg/check_button.svg" height="50" alt="submit"> 
         	    <span class="absolute text-white px-8 py-0 top-1/4 -ml-1">Sprawdź</span>
         	</div>
 	</div>
