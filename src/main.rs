@@ -10,7 +10,7 @@ use actix_web::{
 };
 use book::Book;
 use rand::{distributions::Alphanumeric, Rng};
-use requests::{FormData, GetReq};
+use requests::{FormData, NextReq, HelpReq};
 use serde_json;
 use std::fs::File;
 use std::io::{Error as IoError, Read};
@@ -21,7 +21,7 @@ use tera::{Context, Tera};
 extern crate serde;
 
 async fn index(_req: HttpRequest) -> Result<NamedFile> {
-    let path: PathBuf = "./static/index-new.html".parse().unwrap();
+    let path: PathBuf = "./static/index.html".parse().unwrap();
     Ok(NamedFile::open(path)?)
 }
 
@@ -77,10 +77,49 @@ async fn counter(session: Session) -> Result<HttpResponse, Error> {
         .body(format!("{}/10", book_counter + 1)))
 }
 
-#[get("/api/new-book")]
-async fn new_book(session: Session) -> Result<HttpResponse, Error> {
+#[get("/api/index")]
+async fn render_index(session: Session, params: web::Query<NextReq>) -> Result<HttpResponse, Error> {
+    let db_size = db_len()?;
+    let mut context = Context::new();
+
+    if let Some(count) = session.get::<usize>("counter")? {
+        if count < db_size - 1 && params.next.unwrap_or(false) {
+            session.insert("counter", count + 1)?;
+        }
+    } else {
+        session.insert("counter", 0)?;
+    }
+
+    //help states
+    let help1_state = session.get::<bool>("help1_state")?.unwrap_or(true);
+    let help2_state = session.get::<bool>("help2_state")?.unwrap_or(true);
+
+    
+    match (help1_state, help2_state) {
+        (false, false) => { 
+            context.insert("help1_state", &"");
+            context.insert("help2_state", &"");
+        }  
+        (true, false) => {
+            context.insert("help1_state", &get_template("help1-avail.html", Context::new())?);
+            session.insert("help1_state", true)?;
+            context.insert("help2_state", &"");
+        }
+        (false, true) => {
+            context.insert("help1_state", &"");
+            context.insert("help2_state", &get_template("help2-avail.html", Context::new())?);
+            session.insert("help2_state", true)?;
+        }
+        (_, _) => {
+            context.insert("help1_state", &get_template("help1-avail.html", Context::new())?);
+            session.insert("help1_state", true)?;
+            context.insert("help2_state", &get_template("help2-avail.html", Context::new())?);
+            session.insert("help2_state", true)?;
+        }
+   }
+
     let _ = session.insert("sentences_state", 1);
-    let render = get_template("index.html", Context::new());
+    let render = get_template("index.html", context);
     Ok(HttpResponse::Ok().body(render?))
 }
 
@@ -100,16 +139,18 @@ async fn check_book(session: Session, form: web::Form<FormData>) -> Result<HttpR
             eprint!("ERROR: {:?}", error);
         }
     }
+    context.insert("guess", &form.title);
     if book.title.to_lowercase() == form.title.to_lowercase() {
         context.insert("title", &book.title);
         context.insert("author", &book.author);
+        context.insert("progress", &40);
         render = get_template("correct.html", context);
         return Ok(HttpResponse::Ok().body(render?));
     }
 
     render = get_template("wrong.html", context);
     Ok(HttpResponse::Ok()
-        .insert_header(("HX-Retarget", "#field"))
+        .insert_header(("HX-Retarget", "#frm"))
         .insert_header(("HX-Reswap", "outerHTML"))
         .body(render?))
 }
@@ -139,7 +180,7 @@ fn generate_placeholder(input: &str) -> String {
 }
 
 #[get("/api/sentences")]
-async fn sentences(session: Session, params: web::Query<GetReq>) -> Result<String, Error> {
+async fn sentences(session: Session, params: web::Query<NextReq>) -> Result<String, Error> {
     let count = session.get::<usize>("counter")?.unwrap_or(0);
     let db_response = read_db(count);
     let book: Book;
@@ -186,6 +227,35 @@ async fn sentences(session: Session, params: web::Query<GetReq>) -> Result<Strin
     }
 }
 
+#[get("/api/get-help")]
+async fn get_help(session: Session, params: web::Query<HelpReq>) -> Result<String, Error> {
+    let count = session.get::<usize>("counter")?.unwrap_or(0);
+    let db_response = read_db(count);
+    let book: Book;
+    let mut context = Context::new();
+    match db_response {
+        Ok(value) => {
+            book = value;
+        }
+        Err(error) => {
+            eprint!("ERROR: {:?}", error);
+            return Ok("Oops! Something went wrong.".to_string());
+        }
+    }
+    match params.number {
+        1 => {
+            session.insert("help1_state", false)?;
+            context.insert("help1", &book.ganre);
+            Ok(get_template("help1.html", context)?)
+        },
+        _ => {
+            session.insert("help2_state", false)?;
+            context.insert("help2", &book.author);
+            Ok(get_template("help2.html", context)?)
+        }
+    }
+}
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
@@ -199,7 +269,8 @@ async fn main() -> std::io::Result<()> {
             .service(counter)
             .service(sentences)
             .service(check_book)
-            .service(new_book)
+            .service(render_index)
+            .service(get_help)
             .service(fs::Files::new("/static", "static"))
             .service(fs::Files::new("/static/svg", "static/css"))
             .route("/", web::get().to(index))
