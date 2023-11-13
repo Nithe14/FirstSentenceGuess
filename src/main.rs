@@ -10,7 +10,7 @@ use actix_web::{
 };
 use book::Book;
 use rand::{distributions::Alphanumeric, Rng};
-use requests::{FormData, NextReq, HelpReq};
+use requests::{FormData, HelpReq, NextReq};
 use serde_json;
 use std::fs::File;
 use std::io::{Error as IoError, Read};
@@ -78,7 +78,10 @@ async fn counter(session: Session) -> Result<HttpResponse, Error> {
 }
 
 #[get("/api/index")]
-async fn render_index(session: Session, params: web::Query<NextReq>) -> Result<HttpResponse, Error> {
+async fn render_index(
+    session: Session,
+    params: web::Query<NextReq>,
+) -> Result<HttpResponse, Error> {
     let db_size = db_len()?;
     let mut context = Context::new();
 
@@ -94,29 +97,40 @@ async fn render_index(session: Session, params: web::Query<NextReq>) -> Result<H
     let help1_state = session.get::<bool>("help1_state")?.unwrap_or(true);
     let help2_state = session.get::<bool>("help2_state")?.unwrap_or(true);
 
-    
     match (help1_state, help2_state) {
-        (false, false) => { 
+        (false, false) => {
             context.insert("help1_state", &"");
             context.insert("help2_state", &"");
-        }  
+        }
         (true, false) => {
-            context.insert("help1_state", &get_template("help1-avail.html", Context::new())?);
+            context.insert(
+                "help1_state",
+                &get_template("help1-avail.html", Context::new())?,
+            );
             session.insert("help1_state", true)?;
             context.insert("help2_state", &"");
         }
         (false, true) => {
             context.insert("help1_state", &"");
-            context.insert("help2_state", &get_template("help2-avail.html", Context::new())?);
+            context.insert(
+                "help2_state",
+                &get_template("help2-avail.html", Context::new())?,
+            );
             session.insert("help2_state", true)?;
         }
         (_, _) => {
-            context.insert("help1_state", &get_template("help1-avail.html", Context::new())?);
+            context.insert(
+                "help1_state",
+                &get_template("help1-avail.html", Context::new())?,
+            );
             session.insert("help1_state", true)?;
-            context.insert("help2_state", &get_template("help2-avail.html", Context::new())?);
+            context.insert(
+                "help2_state",
+                &get_template("help2-avail.html", Context::new())?,
+            );
             session.insert("help2_state", true)?;
         }
-   }
+    }
 
     let _ = session.insert("sentences_state", 1);
     let render = get_template("index.html", context);
@@ -247,7 +261,7 @@ async fn get_help(session: Session, params: web::Query<HelpReq>) -> Result<Strin
             session.insert("help1_state", false)?;
             context.insert("help1", &book.ganre);
             Ok(get_template("help1.html", context)?)
-        },
+        }
         _ => {
             session.insert("help2_state", false)?;
             context.insert("help2", &book.author);
