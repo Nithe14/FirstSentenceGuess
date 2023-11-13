@@ -145,6 +145,27 @@ async fn render_index(
     Ok(HttpResponse::Ok().body(render?))
 }
 
+#[post("/api/give-up")]
+async fn give_up(session: Session) -> Result<HttpResponse, Error> {
+    let count = session.get::<usize>("counter")?.unwrap_or(0);
+    let book: Book = match read_db(count) {
+        Ok(value) => value,
+        Err(error) => {
+            eprint!("ERROR: {:?}", error);
+            Book::empty()
+        }
+    };
+
+    let mut context = Context::new();
+    let render: Result<_, _>;
+
+    context.insert("title", &book.title);
+    context.insert("author", &book.author);
+    context.insert("progress", &40);
+    render = get_template("give-up.html", context);
+    Ok(HttpResponse::Ok().body(render?))
+}
+
 #[post("/api/check-book")]
 async fn check_book(session: Session, form: web::Form<FormData>) -> Result<HttpResponse, Error> {
     let count = session.get::<usize>("counter")?.unwrap_or(0);
@@ -288,9 +309,10 @@ async fn main() -> std::io::Result<()> {
             )
             .service(counter)
             .service(sentences)
+            .service(give_up)
+            .service(get_help)
             .service(check_book)
             .service(render_index)
-            .service(get_help)
             .service(fs::Files::new("/static", "static"))
             .service(fs::Files::new("/static/svg", "static/css"))
             .route("/", web::get().to(index))
