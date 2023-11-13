@@ -82,7 +82,15 @@ async fn render_index(
     session: Session,
     params: web::Query<NextReq>,
 ) -> Result<HttpResponse, Error> {
-    let db_size = db_len()?;
+    let db_size = match db_len() {
+        Ok(value) => value,
+        Err(error) => {
+            eprint!("DATABASE ERROR: {:?}", error);
+            return Ok(HttpResponse::InternalServerError()
+                .reason("Database error")
+                .body("Oops! Something went wrong."));
+        }
+    };
     let mut context = Context::new();
 
     if let Some(count) = session.get::<usize>("counter")? {
@@ -140,19 +148,17 @@ async fn render_index(
 #[post("/api/check-book")]
 async fn check_book(session: Session, form: web::Form<FormData>) -> Result<HttpResponse, Error> {
     let count = session.get::<usize>("counter")?.unwrap_or(0);
-    let db_response = read_db(count);
-    let book: Book;
+    let book: Book = match read_db(count) {
+        Ok(value) => value,
+        Err(error) => {
+            eprint!("ERROR: {:?}", error);
+            Book::empty()
+        }
+    };
+
     let mut context = Context::new();
     let render: Result<_, _>;
-    match db_response {
-        Ok(value) => {
-            book = value;
-        }
-        Err(error) => {
-            book = Book::empty();
-            eprint!("ERROR: {:?}", error);
-        }
-    }
+
     context.insert("guess", &form.title);
     if book.title.to_lowercase() == form.title.to_lowercase() {
         context.insert("title", &book.title);
