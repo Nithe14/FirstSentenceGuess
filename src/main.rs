@@ -92,13 +92,16 @@ async fn render_index(
         }
     };
     let mut context = Context::new();
+    
 
     if let Some(count) = session.get::<usize>("counter")? {
         if count < db_size - 1 && params.next.unwrap_or(false) {
             session.insert("counter", count + 1)?;
+            session.insert("current_points", 5)?;
         }
     } else {
         session.insert("counter", 0)?;
+        session.insert("current_points", 5)?;
     }
 
     //help states
@@ -141,6 +144,10 @@ async fn render_index(
     }
 
     let _ = session.insert("sentences_state", 1);
+    let all_points = session.get::<f32>("all_points")?.unwrap_or(0.00);
+    context.insert("all_points", &all_points);
+    let progress = (all_points/(db_len()? as f32 * 5.00)) * 100.00;
+    context.insert("progress", &progress);
     let render = get_template("index.html", context);
     Ok(HttpResponse::Ok().body(render?))
 }
@@ -148,6 +155,7 @@ async fn render_index(
 #[post("/api/give-up")]
 async fn give_up(session: Session) -> Result<HttpResponse, Error> {
     let count = session.get::<usize>("counter")?.unwrap_or(0);
+    let all_points = session.get::<f32>("all_points")?.unwrap_or(0.00); //no points adding
     let book: Book = match read_db(count) {
         Ok(value) => value,
         Err(error) => {
@@ -161,7 +169,9 @@ async fn give_up(session: Session) -> Result<HttpResponse, Error> {
 
     context.insert("title", &book.title);
     context.insert("author", &book.author);
-    context.insert("progress", &40);
+    let progress = (all_points/(db_len()? as f32 * 5.00)) * 100.00 ;
+    context.insert("progress", &progress);
+    context.insert("all_points", &all_points);
     render = get_template("give-up.html", context);
     Ok(HttpResponse::Ok().body(render?))
 }
@@ -169,6 +179,8 @@ async fn give_up(session: Session) -> Result<HttpResponse, Error> {
 #[post("/api/check-book")]
 async fn check_book(session: Session, form: web::Form<FormData>) -> Result<HttpResponse, Error> {
     let count = session.get::<usize>("counter")?.unwrap_or(0);
+    let current_points = session.get::<f32>("current_points")?.unwrap_or(0.00);
+    let mut all_points = session.get::<f32>("all_points")?.unwrap_or(0.00);
     let book: Book = match read_db(count) {
         Ok(value) => value,
         Err(error) => {
@@ -181,14 +193,22 @@ async fn check_book(session: Session, form: web::Form<FormData>) -> Result<HttpR
     let render: Result<_, _>;
 
     context.insert("guess", &form.title);
-    if book.title.to_lowercase() == form.title.to_lowercase() {
+    if book.title.to_lowercase() == form.title.to_lowercase() || book.title_alter.to_lowercase() == form.title.to_lowercase() {
+        all_points = all_points + current_points;
+        session.insert("all_points", all_points)?;
+        context.insert("all_points", &all_points);
         context.insert("title", &book.title);
         context.insert("author", &book.author);
-        context.insert("progress", &40);
+        let progress = (all_points/(db_len()? as f32 * 5.00)) * 100.00;
+        context.insert("progress", &progress);
         render = get_template("correct.html", context);
         return Ok(HttpResponse::Ok().body(render?));
     }
 
+    if current_points > 1.00 {
+        session.insert("current_points", (current_points - 1.00) as u8)?;
+    }
+    println!("{}", session.get::<f32>("current_points")?.unwrap_or(0.00));
     render = get_template("wrong.html", context);
     Ok(HttpResponse::Ok()
         .insert_header(("HX-Retarget", "#frm"))
@@ -223,6 +243,7 @@ fn generate_placeholder(input: &str) -> String {
 #[get("/api/sentences")]
 async fn sentences(session: Session, params: web::Query<NextReq>) -> Result<String, Error> {
     let count = session.get::<usize>("counter")?.unwrap_or(0);
+    let mut current_points = session.get::<i8>("current_points")?.unwrap_or(0);
     let db_response = read_db(count);
     let book: Book;
     let mut context = Context::new();
@@ -243,17 +264,22 @@ async fn sentences(session: Session, params: web::Query<NextReq>) -> Result<Stri
 
     if params.next.unwrap_or(false) == true && state < 3 {
         let _ = session.insert("sentences_state", state + 1);
+        if current_points > 1 {
+            current_points = current_points - 1;
+        }
     } else if params.next.unwrap_or(false) == true {
         let _ = session.insert("sentences_state", 1);
     }
     match session.get::<i32>("sentences_state")?.unwrap_or(1) {
         2 => {
+            session.insert("current_points", current_points)?;
             context.insert("sentence1", &book.sentences[0]);
             context.insert("sentence2", &book.sentences[1]);
             context.insert("sentence3", &sentence3_placeholder);
             return Ok(get_template("sentence2.html", context)?);
         }
         3 => {
+            session.insert("current_points", current_points)?;
             context.insert("sentence1", &book.sentences[0]);
             context.insert("sentence2", &book.sentences[1]);
             context.insert("sentence3", &book.sentences[2]);
@@ -271,6 +297,7 @@ async fn sentences(session: Session, params: web::Query<NextReq>) -> Result<Stri
 #[get("/api/get-help")]
 async fn get_help(session: Session, params: web::Query<HelpReq>) -> Result<String, Error> {
     let count = session.get::<usize>("counter")?.unwrap_or(0);
+    let current_points = session.get::<u8>("current_points")?.unwrap_or(0);
     let db_response = read_db(count);
     let book: Book;
     let mut context = Context::new();
@@ -282,6 +309,9 @@ async fn get_help(session: Session, params: web::Query<HelpReq>) -> Result<Strin
             eprint!("ERROR: {:?}", error);
             return Ok("Oops! Something went wrong.".to_string());
         }
+    }
+    if current_points > 1 {
+        session.insert("current_points", current_points - 1)?;
     }
     match params.number {
         1 => {
