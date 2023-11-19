@@ -82,6 +82,10 @@ async fn render_index(
     session: Session,
     params: web::Query<NextReq>,
 ) -> Result<HttpResponse, Error> {
+    if session.get::<usize>("counter")?.unwrap_or(0) + 1 >= db_len()? && params.next.unwrap_or(false) {
+        let render = get_template("finish.html", Context::new());
+        return Ok(HttpResponse::Ok().body(render?)); 
+    }
     let db_size = match db_len() {
         Ok(value) => value,
         Err(error) => {
@@ -95,7 +99,7 @@ async fn render_index(
     
 
     if let Some(count) = session.get::<usize>("counter")? {
-        if count < db_size - 1 && params.next.unwrap_or(false) {
+        if count < db_size && params.next.unwrap_or(false) {
             session.insert("counter", count + 1)?;
             session.insert("current_points", 5)?;
         }
@@ -148,6 +152,7 @@ async fn render_index(
     context.insert("all_points", &all_points);
     let progress = (all_points/(db_len()? as f32 * 5.00)) * 100.00;
     context.insert("progress", &progress);
+    context.insert("counter", &session.get::<usize>("counter")?.unwrap_or(0));
     let render = get_template("index.html", context);
     Ok(HttpResponse::Ok().body(render?))
 }
@@ -155,6 +160,7 @@ async fn render_index(
 #[post("/api/give-up")]
 async fn give_up(session: Session) -> Result<HttpResponse, Error> {
     let count = session.get::<usize>("counter")?.unwrap_or(0);
+    session.insert(format!("points_{}", count.to_string()), 0)?;
     let all_points = session.get::<f32>("all_points")?.unwrap_or(0.00); //no points adding
     let book: Book = match read_db(count) {
         Ok(value) => value,
@@ -172,6 +178,7 @@ async fn give_up(session: Session) -> Result<HttpResponse, Error> {
     let progress = (all_points/(db_len()? as f32 * 5.00)) * 100.00 ;
     context.insert("progress", &progress);
     context.insert("all_points", &all_points);
+    context.insert("counter", &count);
     render = get_template("give-up.html", context);
     Ok(HttpResponse::Ok().body(render?))
 }
@@ -196,9 +203,11 @@ async fn check_book(session: Session, form: web::Form<FormData>) -> Result<HttpR
     if book.title.to_lowercase() == form.title.to_lowercase() || book.title_alter.to_lowercase() == form.title.to_lowercase() {
         all_points = all_points + current_points;
         session.insert("all_points", all_points)?;
+        session.insert(format!("points_{}", count.to_string()), current_points)?;
         context.insert("all_points", &all_points);
         context.insert("title", &book.title);
         context.insert("author", &book.author);
+        context.insert("counter", &count);
         let progress = (all_points/(db_len()? as f32 * 5.00)) * 100.00;
         context.insert("progress", &progress);
         render = get_template("correct.html", context);
@@ -208,7 +217,6 @@ async fn check_book(session: Session, form: web::Form<FormData>) -> Result<HttpR
     if current_points > 1.00 {
         session.insert("current_points", (current_points - 1.00) as u8)?;
     }
-    println!("{}", session.get::<f32>("current_points")?.unwrap_or(0.00));
     render = get_template("wrong.html", context);
     Ok(HttpResponse::Ok()
         .insert_header(("HX-Retarget", "#frm"))

@@ -1,19 +1,95 @@
 [
-	{
-		"title": "Szóstka Wron",
-    		"title_alter": "Six of Crowns",
-    		"author": "L. Bardugo",
-    		"ganre": "Fantastyka",
-    		"sentences": ["Przestępczy geniusz IMIĘ NAZWISKO otrzymuje ofertę wzbogacenia się ponad wszelkie wyobrażenie – wystarczy w tym celu wykonać zadanie, która z pozoru wydaje się niewykonalne:", "\n– włamać się do niesławnego MIEJSCA (niezdobytej wojskowej twierdzy)\n", "- uwolnić zakładnika (a ten może rozpętać magiczne piekło, które pochłonie cały świat)"]
+{
+    "title": "Szóstka Wron",
+    "title_alter": "Six of Crowns",
+    "author": "L. Bardugo",
+    "ganre": "Fantastyka",
+    "sentences": [ "Przestępczy geniusz <i> IMIĘ NAZWISKO </i> otrzymuje ofertę wzbogacenia się ponad wszelkie wyobrażenie – wystarczy w tym celu wykonać zadanie, która z pozoru wydaje się niewykonalne:<br>",
+   "– włamać się do niesławnego <i> MIEJSCA </i> (niezdobytej wojskowej twierdzy)<br>",
+   "– uwolnić zakładnika (a ten może rozpętać magiczne piekło, które pochłonie cały świat)" ]
+  },
+{
+    "title": "Alicja",
+    "title_alter": "Alice",
+    "author": "Ch. Henry",
+    "ganre": "Young Adult",
+    "sentences": [ "<i> MIASTO</i> to niepokojące miejsce, pełne wąskich, niebezpiecznych uliczek i rozpadających się budynków. ",
+   "Zamieszkują je tylko najbardziej zdesperowani, biedni, pozbawieni nadziei ludzie. ",
+   "W sercu <i> MIASTA</i> stoi szpital psychiatryczny, w którego murach rozchodzą się krzyki zapomnianych przez świat, potępionych dusz." ]
+  },
+{
+    "title": "Horyzont",
+    "title_alter": "Horizont",
+    "author": "J. Małecki",
+    "ganre": "L. Piękna",
+    "sentences": [ "Jałowe lata bez wschodów i zachodów słońca. ",
+    "Wspomnienia jak burza piaskowa, jak skrzypienie desek w starym domu. ",
+   "Smugi przeszłości płytko pod skórą. " ]
+  },
+{
+    "title": "Oko Świata",
+    "title_alter": "The Eye of the World",
+    "author": "R. Jordan",
+    "ganre": "Fantastyka",
+    "sentences": [ "Wspaniała powieść fantasy, przypominająca cudowną baśń o śmiałkach. ",
+   "Imponuje rozległą tematyką, barwnymi opisami, bogactwem detali oraz niezwykle szerokim wachlarzem przekonujących postaci. ",
+   "<i> IMIĘ NAZWISKO</i> - uznany historyk i artysta w jednej osobie - prezentuje w niej wstrząsającą wizję dobra i zła. " ]
+  },
+{
+    "title": "10 minut i 38 sekund na tym dziwnym świecie",
+    "title_alter": "10 Minutes 38 Seconds in This Strange World",
+    "author": "E. Shafak",
+    "ganre": "Lit. Piękna",
+    "sentences": [ "<i> IMIĘ </i>nie żyje. ",
+   "Jej ciało jest martwe, ale mózg pracuje jeszcze przez jakiś czas. ",
+   "Każda kolejna minuta przynosi ze sobą wspomnienie innych wydarzeń, smaków i zapachów. " ]
+  },
+  
+{
+          "title": "Rozdeptałem czarnego kota przez przypadek",
+          "title_alter": "I trampled on a black cat by accident",
+          "author": "F. Zawada",
+          "ganre": "L. Piękna",
+          "sentences": [ "Na świecie pewnych jest tylko kilka rzeczy. ",
+         "Za wyrażanie się nie dostajesz deseru (kto by go zresztą jadł). ",
+         "<i> IMIĘ </i> to beksa i irytujący dureń, który gówno wie o życiu." ]
+      },
+{
+          "title": "Ludzie, których spotykamy na wakacjach",
+          "title_alter": "People We Meet on Vacation",
+          "author": "E. Henry",
+          "ganre": "L. obyczajowa",
+          "sentences": [ "Nie ma chyba na świecie dwóch bardziej od siebie różnych osób niż <i> IMIĘ </i>i <i>IMIĘ_2</i>. ",
+         "Ona jest duszą towarzystwa, ON woli spędzić wieczór z książką.  ",
+         "Ona marzy o podróżach po całym świecie, ON najchętniej zaszyłby się we własnym mieszkaniu." ]
+      },
+{
+        "title": "Do gwiazd",
+        "title_alter": "Skyward",
+        "author": "B. Sanderson",
+        "ganre": "Sci-Fi",
+        "sentences": [ "Świat <i> IMIĘ</i> jest atakowany od setek lat. ",
+       "Obcy zwani <i> NAZWA</i> przypuszczają jeden powietrzny atak za drugim, prowadząc niekończącą się kampanię, której celem jest zagłada ludzkości. ",
+       "Jedyną obroną przed nimi są eskadry myśliwców walczące z wrogiem w przestworzach." ]
+      },
+{
+        "title": "Wielki Gatsby",
+        "title_alter": "Great Gatsby",
+        "author": "F. Fitzgerald",
+        "ganre": "Lit. Piękna",
+        "sentences": [ "Romantyczna miłość, przyjaźń, amerykański sen o szczęściu i sukcesie dostępnym dla każdego to stereotypy, które przynoszą głównemu bohaterowi tej powieści - tytułowemu <i>IMIĘ</i> - tragiczne rozczarowanie. ",
+         "Miłość zniszczył kult pieniądza, przyjaźń okazała się pustym słowem, a sukces finansowy nie wprowadził go tak naprawdę do &quot;lepszej&quot; sfery. ",
+         "Jak podzwonne brzmią najsłynniejsze chyba słowa powieści: &quot;Tak oto dążymy naprzód, kierując łodzie pod prąd, który nieustannie znosi nas w przeszłość&quot;."]
+      },
+{
+        "title": "Sen",
+        "title_alter": "Wake",
+        "author": "L. McMann",
+        "ganre": "Thriller",
+        "sentences": [ "Mroczny paranormalny dar i miłość dwojga nastolatków w pierwszej powieści bestsellerowej lirycznej i wywołującej dreszcz grozy trylogii. ",
+         "<br>Siedemnastoletnia <i>IMIĘ</i> widzi cudze sny. ",
+         "Wciągana w nie wbrew własnej woli, staje się przymusowym świadkiem rozgrywających się w nich wydarzeń." ]
+      }
 
-	},
 
-	{
-		"title": "TEST",
-    		"title_alter": "Six of Crowns",
-    		"author": "L. Bardugo",
-    		"ganre": "Fantastyka",
-    		"sentences": ["Dupa idzie na spacer", " Kazimierz wielki. ", "test test test."]
-
-	}
 ]

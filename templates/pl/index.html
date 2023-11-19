@@ -1,12 +1,13 @@
  <body id="main" class="bg-light-pink font-['Times New Roman'], font-serif transition-all ease-in delay-1000">
-        <img class="block mt-12 mb-0 ml-auto mr-auto" src="/static/svg/book2.svg" alt="Book2">
+	 <div class="relative pb-36 mt-10">
+	 <img class="absolute -top-12 mt-12 mb-0 ml-auto mr-auto inset-0 object-cover z-30" src="/static/svg/book-{{counter}}.svg" alt="Book2">
         
-        <hr class="w-full border-0 h-1.5 bg-dark-pink"/>
-
+        <hr class="absolute top-28 w-full border-0 h-1.5 bg-dark-pink -z-10"/>
+	 </div>
 
 
 	<!--main grid-->
-        <div class="w-full grid grid-cols-4 grid-rows-6 gap-4 pt-8 overflow-hidden">
+        <div class="w-full grid grid-cols-4 grid-rows-6 gap-4 pt-0 overflow-hidden">
 
 	   <!--progress bar-->
 	   <div class="col-span-2 col-start-2 row-start-1 flex items-center justify-center -m-6 overflow-hidden rounded-full -mb-24" x-data="{ circumference: 40 * 2 * Math.PI, percent: {{progress}} }">
@@ -43,7 +44,7 @@
             	<img class="pt-4 pl-4 self-start align-bottom inline-block col-start-1 row-start-1" src="/static/svg/quote-1.svg" alt="quote1">
 		
 		<!--sentences-->
-		<div id= "sen" class="pt-12 pb-12 text-[2rem] col-span-10 row-span-2 col-start-2 row-start-1 z-40" hx-get="/api/sentences" hx-swap="innerHTML" hx-trigger="load newBook from:body">
+		<div id= "sen" class="pt-12 pb-12 text-[1.5rem] col-span-10 row-span-2 col-start-2 row-start-1 z-40" hx-get="/api/sentences" hx-swap="innerHTML" hx-trigger="load newBook from:body">
 			<p class="inline" hx-get="/api/sentences" hx-swap="innerHTML" hx-target="#sen" hx-trigger="load newBook from:body"></p><p class="inline blur-[9px] hover:blur-[6px] hover:cursor-pointer z-40" hx-get="/api/sentences?next=true" hx-swap="innerHTML" hx-target="#sen" ></p><p class="inline blur-[9px] hover:blur-[6px] hover:cursor-pointer"></p>
 		</div>
 
@@ -73,10 +74,10 @@
 		</form>
 
 		<!--check_book button-->
-        	<div class="col-start-4 -ml-28 transition-transform transform hover:translate-x-20 duration-500 z-0 hover:cursor-pointer" id="button1"  > 
+        	<button class="col-start-4 -ml-28 transition-transform transform hover:translate-x-20 duration-500 z-0 hover:cursor-pointer" id="button1" type="submit" form="frm"> 
         	    <img class="button_image" src="/static/svg/check_button.svg" height="50" alt="submit"> 
-        	    <button class="absolute text-white px-8 py-0 top-1/4 -ml-1" type="submit" form="frm">Sprawdź</button>
-        	</div>
+        	    <p class="absolute text-white px-8 py-0 top-1/4 -ml-1">Sprawdź</p>
+        	</button>
 	</div>
 
    </body>

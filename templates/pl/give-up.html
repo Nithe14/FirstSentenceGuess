@@ -1,7 +1,7 @@
-        <img class="block mt-12 mb-0 ml-auto mr-auto" src="/static/svg/book2.svg" alt="Book2">
-        
-        <hr class="w-full border-0 h-1.5 bg-dark-pink"/>
-
+<div class="relative pb-36 mt-10">
+	<img class="absolute -top-12 mt-12 mb-0 ml-auto mr-auto inset-0 object-cover z-30" src="/static/svg/book-{{counter}}.svg" alt="Book2">
+	<hr class="absolute top-28 w-full border-0 h-1.5 bg-dark-pink -z-10"/>
+</div>
 
 
 	<!--main grid-->
@@ -42,10 +42,10 @@
             	<img class="pt-4 pl-4 self-start align-bottom inline-block col-start-1 row-start-1" src="/static/svg/quote-1.svg" alt="quote1">
 		
 		<!--sentences-->
-		<div id= "sen" class="pt-16 pb-16 text-[2rem] col-span-10 row-span-2 col-start-2 row-start-1 z-40 grid justify-items-streach" hx-get="/api/sentences" hx-swap="innerHTML transition:true" hx-trigger="newBook from:body">
-			<p class="block justify-self-center pt-5 pb-5"> Twoja książka to: </p><br> 
-			<p class="block justify-self-center pt-5 pb-5 text-4xl font-extrabold"> {{title}} </p> <br>
-			<p class="block justify-self-center pt-5 pb-5"> {{author}} </p>
+		<div id= "sen" class="pt-12 pb-12 text-[1.5rem] col-span-10 row-span-2 col-start-2 row-start-1 z-40 grid justify-items-center" hx-get="/api/sentences" hx-swap="innerHTML transition:true" hx-trigger="newBook from:body">
+			<p class="block text-cetner pt-2 pb-2"> Twoja książka to: </p><br> 
+			<p class="block text-center pt-2 pb-2 text-4xl font-extrabold"> {{title}} </p> <br>
+			<p class="block text-center pt-2 pb-2"> {{author}} </p>
 		</div>
 
 		<!--quote2-->

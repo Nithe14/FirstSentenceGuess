@@ -1,14 +1,14 @@
-<div class="relative pb-36 mt-10">
-	<img class="absolute -top-12 mt-12 mb-0 ml-auto mr-auto inset-0 object-cover z-30" src="/static/svg/book-{{counter}}.svg" alt="Book2">
-	<hr class="absolute top-28 w-full border-0 h-1.5 bg-dark-pink -z-10"/>
-</div>
+        <img class="block mt-12 mb-0 ml-auto mr-auto" src="/static/svg/book2.svg" alt="Book2">
+        
+        <hr class="w-full border-0 h-1.5 bg-dark-pink"/>
+
 
 
 	<!--main grid-->
         <div class="w-full grid grid-cols-4 grid-rows-6 gap-4 pt-8 overflow-hidden">
 
 	   <!--progress bar-->
-	   <div class="col-span-2 col-start-2 row-start-1 flex items-center justify-center -m-6 overflow-hidden rounded-full -mb-24" x-data="{ circumference: 40 * 2 * Math.PI, percent: {{progress}} }">
+	   <div class="col-span-2 col-start-2 row-start-1 flex items-center justify-center -m-6 overflow-hidden rounded-full -mb-24" x-data="{ circumference: 40 * 2 * Math.PI, percent: 80 }">
               <svg class="w-32 h-32 transform translate-x-1 translate-y-1 -rotate-90 z-20" x-cloak aria-hidden="true">
                 <circle
                   class="text-white"
@@ -32,7 +32,7 @@
                   cy="60"
                  />
               </svg>
-	      <span class="absolute text-2xl text-brown z-30 pt-3" x-text="{{all_points}}"></span>
+	      <span class="absolute text-2xl text-brown z-30 pt-3" x-text="80"></span>
             </div>
 
   	    <!--sentences-box-->
@@ -42,10 +42,8 @@
             	<img class="pt-4 pl-4 self-start align-bottom inline-block col-start-1 row-start-1" src="/static/svg/quote-1.svg" alt="quote1">
 		
 		<!--sentences-->
-		<div id= "sen" class="pt-12 pb-12 text-[1.5rem] col-span-10 row-span-2 col-start-2 row-start-1 z-40 grid justify-items-streach" hx-get="/api/sentences" hx-swap="innerHTML transition:true" hx-trigger="newBook from:body">
-			<p class="block text-center pt-2 pb-2"> Dobrze! </p><br> 
-			<p class="block text-center pt-2 pb-2 text-4xl font-extrabold"> {{title}} </p> <br>
-			<p class="block text-center pt-2 pb-2"> {{author}} </p>
+		<div id= "sen" class="pt-16 pb-16 text-[2rem] col-span-10 row-span-2 col-start-2 row-start-1 z-40 grid justify-items-streach" hx-get="/api/sentences" hx-swap="innerHTML transition:true" hx-trigger="newBook from:body">
+			<p class="block justify-self-center pt-5 pb-5"> Wyniki końcowe: </p><br> 
 		</div>
 
 		<!--quote2-->
@@ -59,7 +57,7 @@
 
 		<!--form-->
         	<form class="col-span-2 col-start-2 self-center bg-white rounded-[14px] shadow-lg z-10 min-h-full" id="frm" hx-post="/api/check-book" hx-target="#main" hx-swap="innerHTML">
-			<p class="w-full h-[2em] text-[1.5rem] outline-none pl-5 pt-2 bg-white rounded-[14px] z-10" id="field" type="text" name="title" >{{guess}}</p>
+			<p class="w-full h-[2em] text-[1.5rem] outline-none pl-5 pt-2 bg-white rounded-[14px] z-10" id="field" type="text" name="title" ></p>
 		</form>
 
 		<!--next_book button-->
