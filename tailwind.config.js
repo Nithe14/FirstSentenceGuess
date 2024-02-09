@@ -33,6 +33,8 @@ module.exports = {
 		'light-pink': '#EDDAD4',
 		'white': '#FFFFFF',
 		'brown': '#433A3B',
+		'green': '#008000',
+		'red': '#FF0000'
 	  },
   },
   plugins: [],

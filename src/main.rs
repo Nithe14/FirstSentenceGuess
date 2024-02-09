@@ -16,6 +16,7 @@ use std::fs::File;
 use std::io::{Error as IoError, Read};
 use std::path::PathBuf;
 use tera::{Context, Tera};
+use std::collections::HashMap;
 
 #[macro_use]
 extern crate serde;
@@ -82,8 +83,24 @@ async fn render_index(
     session: Session,
     params: web::Query<NextReq>,
 ) -> Result<HttpResponse, Error> {
+    let mut context = Context::new();
+
     if session.get::<usize>("counter")?.unwrap_or(0) + 1 >= db_len()? && params.next.unwrap_or(false) {
-        let render = get_template("finish.html", Context::new());
+        //let mut books_points = Vec::new();
+        let mut books = HashMap::new();
+        let all_points = session.get::<f32>("all_points")?.unwrap_or(0.00);
+        let progress = (all_points/(db_len()? as f32 * 5.00)) * 100.00;
+        context.insert("progress", &progress);
+        context.insert("all_points", &all_points);
+        for book_number in 1..db_len()?{
+           let points = session.get::<f32>(format!("points_{}", book_number).as_str())?.unwrap_or(0.00);
+           //books_points.push(points);
+           let book = read_db(book_number)?;
+           let key = format!("{} \"{}\"", book.author, book.title);
+           books.insert(key, points);
+        }
+        context.insert("books", &books);
+        let render = get_template("finish.html", context );
         return Ok(HttpResponse::Ok().body(render?)); 
     }
     let db_size = match db_len() {
@@ -95,7 +112,6 @@ async fn render_index(
                 .body("Oops! Something went wrong."));
         }
     };
-    let mut context = Context::new();
     
 
     if let Some(count) = session.get::<usize>("counter")? {
@@ -161,6 +177,7 @@ async fn render_index(
 async fn give_up(session: Session) -> Result<HttpResponse, Error> {
     let count = session.get::<usize>("counter")?.unwrap_or(0);
     session.insert(format!("points_{}", count.to_string()), 0)?;
+    session.insert(format!("book_{}_done", count), true)?;
     let all_points = session.get::<f32>("all_points")?.unwrap_or(0.00); //no points adding
     let book: Book = match read_db(count) {
         Ok(value) => value,
@@ -201,9 +218,13 @@ async fn check_book(session: Session, form: web::Form<FormData>) -> Result<HttpR
 
     context.insert("guess", &form.title);
     if book.title.to_lowercase() == form.title.to_lowercase() || book.title_alter.to_lowercase() == form.title.to_lowercase() {
-        all_points = all_points + current_points;
-        session.insert("all_points", all_points)?;
-        session.insert(format!("points_{}", count.to_string()), current_points)?;
+        let is_done:bool = session.get::<bool>(format!("book_{}_done", count).as_str())?.unwrap_or(false);
+        if is_done == false { 
+            session.insert(format!("points_{}", count.to_string()), current_points)?;
+            session.insert(format!("book_{}_done", count), true)?;
+            all_points = all_points + current_points;
+            session.insert("all_points", all_points)?;
+        }
         context.insert("all_points", &all_points);
         context.insert("title", &book.title);
         context.insert("author", &book.author);
