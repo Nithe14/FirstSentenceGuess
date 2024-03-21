@@ -295,7 +295,7 @@ async fn sentences(
     data: web::Data<Vec<Book>>,
     session: Session,
     params: web::Query<NextReq>,
-) -> Result<String, Error> {
+) -> Result<HttpResponse, Error> {
     let count = session.get::<usize>("counter")?.unwrap_or(0);
     let mut current_points = session.get::<i8>("current_points")?.unwrap_or(0);
     let db_response = get_entry(&data, count).await;
@@ -307,7 +307,7 @@ async fn sentences(
         }
         Err(error) => {
             eprint!("ERROR: {:?}", error);
-            return Ok("Oops! Something went wrong.".to_string());
+            return Ok(HttpResponse::InternalServerError().body("500 Internal Server Error"));
         }
     }
 
@@ -330,20 +330,23 @@ async fn sentences(
             context.insert("sentence1", &book.sentences[0]);
             context.insert("sentence2", &book.sentences[1]);
             context.insert("sentence3", &sentence3_placeholder);
-            return Ok(get_template("sentence2.html", context)?);
+            let render = get_template("sentence2.html", context);
+            parse_render(render)
         }
         3 => {
             session.insert("current_points", current_points)?;
             context.insert("sentence1", &book.sentences[0]);
             context.insert("sentence2", &book.sentences[1]);
             context.insert("sentence3", &book.sentences[2]);
-            return Ok(get_template("sentence3.html", context)?);
+            let render = get_template("sentence3.html", context);
+            parse_render(render)
         }
         _ => {
             context.insert("sentence1", &book.sentences[0]);
             context.insert("sentence2", &sentence2_placeholder);
             context.insert("sentence3", &sentence3_placeholder);
-            return Ok(get_template("sentence1.html", context)?);
+            let render = get_template("sentence1.html", context);
+            parse_render(render)
         }
     }
 }
@@ -353,7 +356,7 @@ async fn get_help(
     data: web::Data<Vec<Book>>,
     session: Session,
     params: web::Query<HelpReq>,
-) -> Result<String, Error> {
+) -> Result<HttpResponse, Error> {
     let count = session.get::<usize>("counter")?.unwrap_or(0);
     let current_points = session.get::<u8>("current_points")?.unwrap_or(0);
     let db_response = get_entry(&data, count).await;
@@ -365,7 +368,7 @@ async fn get_help(
         }
         Err(error) => {
             eprint!("ERROR: {:?}", error);
-            return Ok("Oops! Something went wrong.".to_string());
+            return Ok(HttpResponse::InternalServerError().body("500 Internal Server Error"));
         }
     }
     if current_points > 1 {
@@ -375,12 +378,14 @@ async fn get_help(
         1 => {
             session.insert("help1_state", false)?;
             context.insert("help1", &book.ganre);
-            Ok(get_template("help1.html", context)?)
+            let render = get_template("help1.html", context);
+            parse_render(render)
         }
         _ => {
             session.insert("help2_state", false)?;
             context.insert("help2", &book.author);
-            Ok(get_template("help2.html", context)?)
+            let render = get_template("help2.html", context);
+            parse_render(render)
         }
     }
 }
