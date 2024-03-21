@@ -12,6 +12,7 @@ use rand::{distributions::Alphanumeric, Rng};
 use requests::{FormData, HelpReq, NextReq};
 use serde_json;
 use std::collections::HashMap;
+use std::fmt::Display;
 use std::fs::File;
 use std::io::BufReader;
 use std::io::Error as IoError;
@@ -43,15 +44,24 @@ async fn get_entry(
 }
 
 fn get_template(template: &str, context: Context) -> Result<String, Box<dyn std::error::Error>> {
-    let mut tera = match Tera::parse("templates/pl/*") {
-        Ok(t) => t,
-        Err(e) => {
-            eprint!("Parsing error(s): {}", e);
-            return Ok("Oops! Something went wrong.".to_string());
-        }
-    };
+    let mut tera =
+        Tera::parse("templates/pl/*").inspect_err(|e| eprintln!("Parsing error: {}", e))?;
     tera.build_inheritance_chains()?;
-    Ok(tera.render(template, &context).unwrap())
+    Ok(tera.render(template, &context)?)
+}
+
+fn parse_render<W, E>(render: Result<String, W>) -> Result<HttpResponse, E>
+where
+    W: Display,
+    E: Display,
+{
+    match render {
+        Ok(r) => Ok(HttpResponse::Ok().body(r)),
+        Err(e) => {
+            eprintln!("{}", e);
+            Ok(HttpResponse::InternalServerError().body("500 Internal Server Error"))
+        }
+    }
 }
 
 #[get("/")]
@@ -108,7 +118,7 @@ async fn render_index(
         }
         context.insert("books", &books);
         let render = get_template("finish.html", context);
-        return Ok(HttpResponse::Ok().body(render?));
+        return parse_render(render);
     }
     let db_size = data.len();
     if let Some(count) = session.get::<usize>("counter")? {
@@ -167,7 +177,7 @@ async fn render_index(
     context.insert("progress", &progress);
     context.insert("counter", &session.get::<usize>("counter")?.unwrap_or(0));
     let render = get_template("index.html", context);
-    Ok(HttpResponse::Ok().body(render?))
+    parse_render(render)
 }
 
 #[post("/api/give-up")]
@@ -194,7 +204,7 @@ async fn give_up(data: web::Data<Vec<Book>>, session: Session) -> Result<HttpRes
     context.insert("all_points", &all_points);
     context.insert("counter", &count);
     render = get_template("give-up.html", context);
-    Ok(HttpResponse::Ok().body(render?))
+    parse_render(render)
 }
 
 #[post("/api/check-book")]
@@ -237,17 +247,23 @@ async fn check_book(
         let progress = (all_points / (data.len() as f32 * 5.00)) * 100.00;
         context.insert("progress", &progress);
         render = get_template("correct.html", context);
-        return Ok(HttpResponse::Ok().body(render?));
+        return parse_render(render);
     }
 
     if current_points > 1.00 {
         session.insert("current_points", (current_points - 1.00) as u8)?;
     }
     render = get_template("wrong.html", context);
-    Ok(HttpResponse::Ok()
-        .insert_header(("HX-Retarget", "#frm"))
-        .insert_header(("HX-Reswap", "outerHTML"))
-        .body(render?))
+    match render {
+        Ok(r) => Ok(HttpResponse::Ok()
+            .insert_header(("HX-Retarget", "#frm")) //cannot use parse_render() because of custom headers
+            .insert_header(("HX-Reswap", "outerHTML"))
+            .body(r)),
+        Err(e) => {
+            eprintln!("{}", e);
+            Ok(HttpResponse::InternalServerError().body("500 Internal Server Error"))
+        }
+    }
 }
 
 fn generate_placeholder(input: &str) -> String {
