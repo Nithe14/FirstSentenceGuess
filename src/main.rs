@@ -28,11 +28,6 @@ fn load_data_from_file(file_path: &str) -> Result<Vec<Book>, Box<dyn std::error:
     Ok(data)
 }
 
-async fn index(_req: HttpRequest) -> Result<NamedFile> {
-    let path: PathBuf = "./static/index.html".parse().unwrap();
-    Ok(NamedFile::open(path)?)
-}
-
 async fn get_entry(
     data: &web::Data<Vec<Book>>,
     n: usize,
@@ -57,6 +52,12 @@ fn get_template(template: &str, context: Context) -> Result<String, Box<dyn std:
     };
     tera.build_inheritance_chains()?;
     Ok(tera.render(template, &context).unwrap())
+}
+
+#[get("/")]
+async fn index(_req: HttpRequest) -> Result<NamedFile> {
+    let path: PathBuf = "./static/index.html".parse().unwrap();
+    Ok(NamedFile::open(path)?)
 }
 
 #[get("/api/counter")]
@@ -96,7 +97,7 @@ async fn render_index(
         let progress = (all_points / (data.len() as f32 * 5.00)) * 100.00;
         context.insert("progress", &progress);
         context.insert("all_points", &all_points);
-        for book_number in 1..data.len() {
+        for book_number in 0..data.len() {
             let points = session
                 .get::<f32>(format!("points_{}", book_number).as_str())?
                 .unwrap_or(0.00);
@@ -387,9 +388,9 @@ async fn main() -> std::io::Result<()> {
             .service(get_help)
             .service(check_book)
             .service(render_index)
+            .service(index)
             .service(fs::Files::new("/static", "static"))
             .service(fs::Files::new("/static/svg", "static/css"))
-            .route("/", web::get().to(index))
     })
     .bind(("127.0.0.1", 8080))?
     .run()
