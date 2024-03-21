@@ -5,41 +5,39 @@ use actix_files as fs;
 use actix_files::NamedFile;
 use actix_session::{storage::CookieSessionStore, Session, SessionMiddleware};
 use actix_web::{
-    cookie::Key, get, post, web, App, Error, HttpRequest, HttpResponse, HttpServer, Responder,
-    Result,
+    cookie::Key, get, post, web, App, Error, HttpRequest, HttpResponse, HttpServer, Result,
 };
 use book::Book;
 use rand::{distributions::Alphanumeric, Rng};
 use requests::{FormData, HelpReq, NextReq};
 use serde_json;
+use std::collections::HashMap;
 use std::fs::File;
-use std::io::{Error as IoError, Read};
+use std::io::BufReader;
+use std::io::Error as IoError;
 use std::path::PathBuf;
 use tera::{Context, Tera};
-use std::collections::HashMap;
 
 #[macro_use]
 extern crate serde;
+
+fn load_data_from_file(file_path: &str) -> Result<Vec<Book>, Box<dyn std::error::Error>> {
+    let file = File::open(file_path)?;
+    let reader = BufReader::new(file);
+    let data: Vec<Book> = serde_json::from_reader(reader)?;
+    Ok(data)
+}
 
 async fn index(_req: HttpRequest) -> Result<NamedFile> {
     let path: PathBuf = "./static/index.html".parse().unwrap();
     Ok(NamedFile::open(path)?)
 }
 
-fn db_len() -> Result<usize, Box<dyn std::error::Error>> {
-    let mut file = File::open("db.json")?;
-    let mut data = String::new();
-    file.read_to_string(&mut data)?;
-    let books: Vec<Book> = serde_json::from_str(&data)?;
-
-    Ok(books.len())
-}
-
-fn read_db(n: usize) -> Result<Book, Box<dyn std::error::Error>> {
-    let mut file = File::open("db.json")?;
-    let mut data = String::new();
-    file.read_to_string(&mut data)?;
-    let books: Vec<Book> = serde_json::from_str(&data)?;
+async fn get_entry(
+    data: &web::Data<Vec<Book>>,
+    n: usize,
+) -> Result<Book, Box<dyn std::error::Error>> {
+    let books = &data;
     if n >= books.len() {
         return Err(Box::new(IoError::new(
             std::io::ErrorKind::Other,
@@ -62,8 +60,8 @@ fn get_template(template: &str, context: Context) -> Result<String, Box<dyn std:
 }
 
 #[get("/api/counter")]
-async fn counter(session: Session) -> Result<HttpResponse, Error> {
-    let db_size = db_len()?;
+async fn counter(data: web::Data<Vec<Book>>, session: Session) -> Result<HttpResponse, Error> {
+    let db_size = data.len();
     if let Some(count) = session.get::<usize>("counter")? {
         if count < db_size - 1 {
             session.insert("counter", count + 1)?;
@@ -80,40 +78,38 @@ async fn counter(session: Session) -> Result<HttpResponse, Error> {
 
 #[get("/api/index")]
 async fn render_index(
+    data: web::Data<Vec<Book>>,
     session: Session,
     params: web::Query<NextReq>,
 ) -> Result<HttpResponse, Error> {
     let mut context = Context::new();
+    let count = session.get::<usize>("counter")?.unwrap_or(0);
 
-    if session.get::<usize>("counter")?.unwrap_or(0) + 1 >= db_len()? && params.next.unwrap_or(false) {
+    if count + 1 >= data.len() && params.next.unwrap_or(false)
+        || session
+            .get(&format!("book_{}_done", &data.len() - 1))?
+            .unwrap_or(false)
+    {
         //let mut books_points = Vec::new();
         let mut books = HashMap::new();
         let all_points = session.get::<f32>("all_points")?.unwrap_or(0.00);
-        let progress = (all_points/(db_len()? as f32 * 5.00)) * 100.00;
+        let progress = (all_points / (data.len() as f32 * 5.00)) * 100.00;
         context.insert("progress", &progress);
         context.insert("all_points", &all_points);
-        for book_number in 1..db_len()?{
-           let points = session.get::<f32>(format!("points_{}", book_number).as_str())?.unwrap_or(0.00);
-           //books_points.push(points);
-           let book = read_db(book_number)?;
-           let key = format!("{} \"{}\"", book.author, book.title);
-           books.insert(key, points);
+        for book_number in 1..data.len() {
+            let points = session
+                .get::<f32>(format!("points_{}", book_number).as_str())?
+                .unwrap_or(0.00);
+            //books_points.push(points);
+            let book = get_entry(&data, book_number).await?;
+            let key = format!("{} \"{}\"", book.author, book.title);
+            books.insert(key, points);
         }
         context.insert("books", &books);
-        let render = get_template("finish.html", context );
-        return Ok(HttpResponse::Ok().body(render?)); 
+        let render = get_template("finish.html", context);
+        return Ok(HttpResponse::Ok().body(render?));
     }
-    let db_size = match db_len() {
-        Ok(value) => value,
-        Err(error) => {
-            eprint!("DATABASE ERROR: {:?}", error);
-            return Ok(HttpResponse::InternalServerError()
-                .reason("Database error")
-                .body("Oops! Something went wrong."));
-        }
-    };
-    
-
+    let db_size = data.len();
     if let Some(count) = session.get::<usize>("counter")? {
         if count < db_size && params.next.unwrap_or(false) {
             session.insert("counter", count + 1)?;
@@ -166,7 +162,7 @@ async fn render_index(
     let _ = session.insert("sentences_state", 1);
     let all_points = session.get::<f32>("all_points")?.unwrap_or(0.00);
     context.insert("all_points", &all_points);
-    let progress = (all_points/(db_len()? as f32 * 5.00)) * 100.00;
+    let progress = (all_points / (data.len() as f32 * 5.00)) * 100.00;
     context.insert("progress", &progress);
     context.insert("counter", &session.get::<usize>("counter")?.unwrap_or(0));
     let render = get_template("index.html", context);
@@ -174,12 +170,12 @@ async fn render_index(
 }
 
 #[post("/api/give-up")]
-async fn give_up(session: Session) -> Result<HttpResponse, Error> {
+async fn give_up(data: web::Data<Vec<Book>>, session: Session) -> Result<HttpResponse, Error> {
     let count = session.get::<usize>("counter")?.unwrap_or(0);
     session.insert(format!("points_{}", count.to_string()), 0)?;
     session.insert(format!("book_{}_done", count), true)?;
     let all_points = session.get::<f32>("all_points")?.unwrap_or(0.00); //no points adding
-    let book: Book = match read_db(count) {
+    let book: Book = match get_entry(&data, count).await {
         Ok(value) => value,
         Err(error) => {
             eprint!("ERROR: {:?}", error);
@@ -192,7 +188,7 @@ async fn give_up(session: Session) -> Result<HttpResponse, Error> {
 
     context.insert("title", &book.title);
     context.insert("author", &book.author);
-    let progress = (all_points/(db_len()? as f32 * 5.00)) * 100.00 ;
+    let progress = (all_points / (data.len() as f32 * 5.00)) * 100.00;
     context.insert("progress", &progress);
     context.insert("all_points", &all_points);
     context.insert("counter", &count);
@@ -201,11 +197,15 @@ async fn give_up(session: Session) -> Result<HttpResponse, Error> {
 }
 
 #[post("/api/check-book")]
-async fn check_book(session: Session, form: web::Form<FormData>) -> Result<HttpResponse, Error> {
+async fn check_book(
+    data: web::Data<Vec<Book>>,
+    session: Session,
+    form: web::Form<FormData>,
+) -> Result<HttpResponse, Error> {
     let count = session.get::<usize>("counter")?.unwrap_or(0);
     let current_points = session.get::<f32>("current_points")?.unwrap_or(0.00);
     let mut all_points = session.get::<f32>("all_points")?.unwrap_or(0.00);
-    let book: Book = match read_db(count) {
+    let book: Book = match get_entry(&data, count).await {
         Ok(value) => value,
         Err(error) => {
             eprint!("ERROR: {:?}", error);
@@ -217,9 +217,13 @@ async fn check_book(session: Session, form: web::Form<FormData>) -> Result<HttpR
     let render: Result<_, _>;
 
     context.insert("guess", &form.title);
-    if book.title.to_lowercase() == form.title.to_lowercase() || book.title_alter.to_lowercase() == form.title.to_lowercase() {
-        let is_done:bool = session.get::<bool>(format!("book_{}_done", count).as_str())?.unwrap_or(false);
-        if is_done == false { 
+    if book.title.to_lowercase() == form.title.to_lowercase()
+        || book.title_alter.to_lowercase() == form.title.to_lowercase()
+    {
+        let is_done: bool = session
+            .get::<bool>(format!("book_{}_done", count).as_str())?
+            .unwrap_or(false);
+        if is_done == false {
             session.insert(format!("points_{}", count.to_string()), current_points)?;
             session.insert(format!("book_{}_done", count), true)?;
             all_points = all_points + current_points;
@@ -229,7 +233,7 @@ async fn check_book(session: Session, form: web::Form<FormData>) -> Result<HttpR
         context.insert("title", &book.title);
         context.insert("author", &book.author);
         context.insert("counter", &count);
-        let progress = (all_points/(db_len()? as f32 * 5.00)) * 100.00;
+        let progress = (all_points / (data.len() as f32 * 5.00)) * 100.00;
         context.insert("progress", &progress);
         render = get_template("correct.html", context);
         return Ok(HttpResponse::Ok().body(render?));
@@ -270,10 +274,14 @@ fn generate_placeholder(input: &str) -> String {
 }
 
 #[get("/api/sentences")]
-async fn sentences(session: Session, params: web::Query<NextReq>) -> Result<String, Error> {
+async fn sentences(
+    data: web::Data<Vec<Book>>,
+    session: Session,
+    params: web::Query<NextReq>,
+) -> Result<String, Error> {
     let count = session.get::<usize>("counter")?.unwrap_or(0);
     let mut current_points = session.get::<i8>("current_points")?.unwrap_or(0);
-    let db_response = read_db(count);
+    let db_response = get_entry(&data, count).await;
     let book: Book;
     let mut context = Context::new();
     match db_response {
@@ -324,10 +332,14 @@ async fn sentences(session: Session, params: web::Query<NextReq>) -> Result<Stri
 }
 
 #[get("/api/get-help")]
-async fn get_help(session: Session, params: web::Query<HelpReq>) -> Result<String, Error> {
+async fn get_help(
+    data: web::Data<Vec<Book>>,
+    session: Session,
+    params: web::Query<HelpReq>,
+) -> Result<String, Error> {
     let count = session.get::<usize>("counter")?.unwrap_or(0);
     let current_points = session.get::<u8>("current_points")?.unwrap_or(0);
-    let db_response = read_db(count);
+    let db_response = get_entry(&data, count).await;
     let book: Book;
     let mut context = Context::new();
     match db_response {
@@ -358,7 +370,9 @@ async fn get_help(session: Session, params: web::Query<HelpReq>) -> Result<Strin
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    HttpServer::new(|| {
+    let data =
+        web::Data::new(load_data_from_file("db.json").expect("Failed to read database json file!"));
+    HttpServer::new(move || {
         App::new()
             .wrap(
                 // create cookie based session middleware
@@ -366,6 +380,7 @@ async fn main() -> std::io::Result<()> {
                     .cookie_secure(false)
                     .build(),
             )
+            .app_data(data.clone())
             .service(counter)
             .service(sentences)
             .service(give_up)
