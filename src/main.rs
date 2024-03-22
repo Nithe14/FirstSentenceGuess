@@ -1,4 +1,5 @@
 mod book;
+mod config;
 mod requests;
 
 use actix_files as fs;
@@ -7,6 +8,7 @@ use actix_web::{
     cookie::Key, get, post, web, App, Error, HttpRequest, HttpResponse, HttpServer, Result,
 };
 use book::Book;
+use config::parse_config_or_exit;
 use rand::{distributions::Alphanumeric, Rng};
 use requests::{FormData, HelpReq, NextReq};
 use serde_json;
@@ -390,8 +392,10 @@ async fn get_help(
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    let data =
-        web::Data::new(load_data_from_file("db.json").expect("Failed to read database json file!"));
+    let config = parse_config_or_exit();
+    let data = web::Data::new(
+        load_data_from_file(&config.get_db_file()).expect("Failed to read database json file!"),
+    );
     HttpServer::new(move || {
         App::new()
             .wrap(
@@ -411,7 +415,7 @@ async fn main() -> std::io::Result<()> {
             .service(fs::Files::new("/static", "static"))
             .service(fs::Files::new("/static/svg", "static/css"))
     })
-    .bind(("127.0.0.1", 8080))?
+    .bind((config.get_bind_host(), config.get_bind_port()))?
     .run()
     .await
 }
