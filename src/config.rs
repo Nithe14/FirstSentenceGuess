@@ -5,6 +5,7 @@ pub struct Config {
     bind_host: Option<String>,
     bind_port: Option<u16>,
     db_file: String,
+    db_safe: Option<bool>,
 }
 
 impl Config {
@@ -18,6 +19,9 @@ impl Config {
     }
     pub fn get_db_file(&self) -> String {
         self.db_file.to_owned()
+    }
+    pub fn is_db_safe(&self) -> bool {
+        self.db_safe.unwrap_or(false)
     }
 }
 

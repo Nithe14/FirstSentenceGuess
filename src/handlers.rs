@@ -3,14 +3,18 @@ use rand::{distributions::Alphanumeric, Rng};
 use std::fmt::Display;
 use tera::{Context, Tera};
 
+use crate::config::parse_config_or_exit;
+
 pub fn get_template(
     template: &str,
-    context: Context,
+    mut context: Context,
 ) -> Result<String, Box<dyn std::error::Error>> {
     let tera = Tera::new("templates/pl/*").map_err(|e| {
         eprintln!("Parsing error: {}", e);
         Box::new(e) as Box<dyn std::error::Error>
     })?;
+    let is_safe = parse_config_or_exit().is_db_safe();
+    context.insert("is_safe", &is_safe);
     Ok(tera.render(template, &context)?)
 }
 
