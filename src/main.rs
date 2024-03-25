@@ -8,7 +8,7 @@ mod requests;
 
 use actions::*;
 use actix_files as fs;
-use actix_session::{storage::CookieSessionStore, Session, SessionMiddleware};
+use actix_session::{storage::CookieSessionStore, SessionMiddleware};
 use actix_web::{cookie::Key, web, App, HttpServer};
 use config::parse_config_or_exit;
 use db::*;

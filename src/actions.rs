@@ -180,18 +180,14 @@ pub async fn get_help(
 ) -> Result<HttpResponse, Error> {
     let count = session.get::<usize>("counter")?.unwrap_or(0);
     let current_points = session.get::<u8>("current_points")?.unwrap_or(0);
-    let db_response = get_entry(&data, count).await;
-    let book: Book;
-    let mut context = Context::new();
-    match db_response {
-        Ok(value) => {
-            book = value;
-        }
-        Err(error) => {
-            eprint!("ERROR: {:?}", error);
+    let book: Book = match get_entry(&data, count).await {
+        Ok(value) => value,
+        Err(e) => {
+            eprintln!("{}", e);
             return Ok(HttpResponse::InternalServerError().body("500 Internal Server Error"));
         }
-    }
+    };
+    let mut context = Context::new();
     if current_points > 1 {
         session.insert("current_points", current_points - 1)?;
     }

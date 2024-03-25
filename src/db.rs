@@ -2,6 +2,7 @@ use crate::book::Book;
 use serde_json;
 use std::fs::File;
 use std::io::BufReader;
+
 pub fn load_data_from_file(file_path: &str) -> Result<Vec<Book>, Box<dyn std::error::Error>> {
     let file = File::open(file_path)?;
     let reader = BufReader::new(file);
