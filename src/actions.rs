@@ -1,6 +1,7 @@
 use crate::book::Book;
 use crate::db::get_entry;
 use crate::handlers::*;
+use crate::messages::parse_messages;
 use crate::requests::*;
 use actix_session::Session;
 use actix_web::{get, post, web, Error, HttpResponse, Result};
@@ -47,7 +48,7 @@ pub async fn give_up(data: web::Data<Vec<Book>>, session: Session) -> Result<Htt
     context.insert("progress", &progress);
     context.insert("all_points", &all_points);
     context.insert("counter", &count);
-    render = get_template("give-up.html", context);
+    render = get_template("give-up.html", context, &session);
     parse_render(render)
 }
 
@@ -91,14 +92,14 @@ pub async fn check_book(
         context.insert("counter", &count);
         let progress = (all_points / (data.len() as f32 * 5.00)) * 100.00;
         context.insert("progress", &progress);
-        render = get_template("correct.html", context);
+        render = get_template("correct.html", context, &session);
         return parse_render(render);
     }
 
     if current_points > 1.00 {
         session.insert("current_points", (current_points - 1.00) as u8)?;
     }
-    render = get_template("wrong.html", context);
+    render = get_template("wrong.html", context, &session);
     match render {
         Ok(r) => Ok(HttpResponse::Ok()
             .insert_header(("HX-Retarget", "#frm")) //cannot use parse_render() because of custom headers
@@ -151,7 +152,7 @@ pub async fn sentences(
             context.insert("sentence1", &book.sentences[0]);
             context.insert("sentence2", &book.sentences[1]);
             context.insert("sentence3", &sentence3_placeholder);
-            let render = get_template("sentence2.html", context);
+            let render = get_template("sentence2.html", context, &session);
             parse_render(render)
         }
         3 => {
@@ -159,14 +160,14 @@ pub async fn sentences(
             context.insert("sentence1", &book.sentences[0]);
             context.insert("sentence2", &book.sentences[1]);
             context.insert("sentence3", &book.sentences[2]);
-            let render = get_template("sentence3.html", context);
+            let render = get_template("sentence3.html", context, &session);
             parse_render(render)
         }
         _ => {
             context.insert("sentence1", &book.sentences[0]);
             context.insert("sentence2", &sentence2_placeholder);
             context.insert("sentence3", &sentence3_placeholder);
-            let render = get_template("sentence1.html", context);
+            let render = get_template("sentence1.html", context, &session);
             parse_render(render)
         }
     }
@@ -195,14 +196,28 @@ pub async fn get_help(
         1 => {
             session.insert("help1_state", false)?;
             context.insert("help1", &book.ganre);
-            let render = get_template("help1.html", context);
+            let render = get_template("help1.html", context, &session);
             parse_render(render)
         }
         _ => {
             session.insert("help2_state", false)?;
             context.insert("help2", &book.author);
-            let render = get_template("help2.html", context);
+            let render = get_template("help2.html", context, &session);
             parse_render(render)
         }
     }
+}
+
+#[get("/api/change-lang")]
+pub async fn change_lang(
+    session: Session,
+    params: web::Query<Lang>,
+) -> Result<HttpResponse, Error> {
+    match parse_messages(&params.lang) {
+        Ok(_) => session.insert("lang", &params.lang)?,
+        Err(_) => return Ok(HttpResponse::NotFound().body("404 Provided language not found")),
+    }
+    Ok(HttpResponse::Ok()
+        .insert_header(("HX-Refresh", "true"))
+        .body(""))
 }

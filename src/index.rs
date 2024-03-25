@@ -51,7 +51,7 @@ pub async fn render_index(
             books.insert(key, points);
         }
         context.insert("books", &books);
-        let render = get_template("finish.html", context);
+        let render = get_template("finish.html", context, &session);
         return parse_render(render);
     }
     if let Some(count) = session.get::<usize>("counter")? {
@@ -76,7 +76,7 @@ pub async fn render_index(
         (true, false) => {
             context.insert(
                 "help1_state",
-                &get_template("help1-avail.html", Context::new())?,
+                &get_template("help1-avail.html", Context::new(), &session)?,
             );
             session.insert("help1_state", true)?;
             context.insert("help2_state", &"");
@@ -85,19 +85,19 @@ pub async fn render_index(
             context.insert("help1_state", &"");
             context.insert(
                 "help2_state",
-                &get_template("help2-avail.html", Context::new())?,
+                &get_template("help2-avail.html", Context::new(), &session)?,
             );
             session.insert("help2_state", true)?;
         }
         (_, _) => {
             context.insert(
                 "help1_state",
-                &get_template("help1-avail.html", Context::new())?,
+                &get_template("help1-avail.html", Context::new(), &session)?,
             );
             session.insert("help1_state", true)?;
             context.insert(
                 "help2_state",
-                &get_template("help2-avail.html", Context::new())?,
+                &get_template("help2-avail.html", Context::new(), &session)?,
             );
             session.insert("help2_state", true)?;
         }
@@ -108,6 +108,6 @@ pub async fn render_index(
     let progress = (all_points / (data.len() as f32 * 5.00)) * 100.00;
     context.insert("progress", &progress);
     context.insert("counter", &session.get::<usize>("counter")?.unwrap_or(0));
-    let render = get_template("index.html", context);
+    let render = get_template("index.html", context, &session);
     parse_render(render)
 }

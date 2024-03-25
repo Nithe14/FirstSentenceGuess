@@ -4,6 +4,7 @@ mod config;
 mod db;
 mod handlers;
 mod index;
+mod messages;
 mod requests;
 
 use actions::*;
@@ -38,6 +39,7 @@ async fn main() -> std::io::Result<()> {
             .service(get_help)
             .service(check_book)
             .service(render_index)
+            .service(change_lang)
             .service(index)
             .service(fs::Files::new("/static", "static"))
             .service(fs::Files::new("/static/svg", "static/css"))

@@ -4,6 +4,11 @@ pub struct NextReq {
 }
 
 #[derive(Deserialize)]
+pub struct Lang {
+    pub lang: String,
+}
+
+#[derive(Deserialize)]
 pub struct FormData {
     pub title: String,
 }

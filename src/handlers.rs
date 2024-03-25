@@ -1,20 +1,26 @@
+use actix_session::Session;
 use actix_web::HttpResponse;
 use rand::{distributions::Alphanumeric, Rng};
 use std::fmt::Display;
 use tera::{Context, Tera};
 
 use crate::config::parse_config_or_exit;
+use crate::messages::parse_messages;
 
 pub fn get_template(
     template: &str,
     mut context: Context,
+    session: &Session,
 ) -> Result<String, Box<dyn std::error::Error>> {
-    let tera = Tera::new("templates/pl/*").map_err(|e| {
+    let tera = Tera::new("templates/*.html").map_err(|e| {
         eprintln!("Parsing error: {}", e);
         Box::new(e) as Box<dyn std::error::Error>
     })?;
     let is_safe = parse_config_or_exit().is_db_safe();
+    let lang = session.get("lang")?.unwrap_or(String::from("en"));
+    let messages = parse_messages(&lang)?;
     context.insert("is_safe", &is_safe);
+    context.insert("messages", &messages);
     Ok(tera.render(template, &context)?)
 }
 
