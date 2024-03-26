@@ -209,15 +209,12 @@ pub async fn get_help(
 }
 
 #[get("/api/change-lang")]
-pub async fn change_lang(
-    session: Session,
-    params: web::Query<Lang>,
-) -> Result<HttpResponse, Error> {
-    match parse_messages(&params.lang) {
-        Ok(_) => session.insert("lang", &params.lang)?,
-        Err(_) => return Ok(HttpResponse::NotFound().body("404 Provided language not found")),
+pub async fn change_lang(params: web::Query<Lang>) -> HttpResponse {
+    if parse_messages(&params.lang).is_ok() {
+        HttpResponse::Ok()
+            .insert_header(("HX-Refresh", "true"))
+            .body("")
+    } else {
+        HttpResponse::BadRequest().body("400 Bad Request. Language not supported.")
     }
-    Ok(HttpResponse::Ok()
-        .insert_header(("HX-Refresh", "true"))
-        .body(""))
 }
