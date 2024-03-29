@@ -1,18 +1,18 @@
-mod actions;
 mod book;
 mod config;
 mod db;
+mod endpoints;
 mod handlers;
 mod index;
 mod messages;
 mod requests;
 
-use actions::*;
 use actix_files as fs;
 use actix_session::{storage::CookieSessionStore, SessionMiddleware};
 use actix_web::{cookie::Key, web, App, HttpServer};
 use config::parse_config_or_exit;
 use db::*;
+use endpoints::*;
 use index::*;
 
 #[macro_use]
