@@ -195,7 +195,7 @@ pub async fn get_help(
     match params.number {
         1 => {
             session.insert("help1_state", false)?;
-            context.insert("help1", &book.ganre);
+            context.insert("help1", &book.genre);
             let render = get_template("help1.html", context, &session);
             parse_render(render)
         }
