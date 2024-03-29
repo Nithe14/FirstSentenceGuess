@@ -209,8 +209,15 @@ pub async fn get_help(
 }
 
 #[get("/api/change-lang")]
-pub async fn change_lang(params: web::Query<Lang>) -> HttpResponse {
+pub async fn change_lang(session: Session, params: web::Query<Lang>) -> HttpResponse {
     if parse_messages(&params.lang).is_ok() {
+        match session.insert("lang", &params.lang) {
+            Ok(_) => (),
+            Err(e) => {
+                eprintln!("{}", e);
+                return HttpResponse::InternalServerError().body("500 Internal Server Error");
+            }
+        };
         HttpResponse::Ok()
             .insert_header(("HX-Refresh", "true"))
             .body("")
