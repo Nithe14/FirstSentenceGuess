@@ -9,8 +9,8 @@ Right now, the app uses a JSON file as its database, which it reads at startup. 
 ## Config
 There is only one config file with 4 options. The config has to be in the app working dir and has to be named `config.toml`. The config options are listed below:
 
-- `bind_host`: DNS name or IP address of the app host (default: `"0.0.0.0"`)
-- `bind_port`: Port where the app listens (default: `8000`)
+- `bind_host`: DNS name or IP address of the app host (default: `"127.0.0.1"`)
+- `bind_port`: Port where the app listens (default: `8080`)
 - `db_file`: Path to the JSON database file (required, no default value)
 - `db_safe`: If set to `true`, HTML in the database file won't be escaped, potentially insecure (default: `false`)
 
