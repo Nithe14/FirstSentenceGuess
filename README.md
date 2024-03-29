@@ -4,6 +4,8 @@ A simple web quiz app inspired by BookTube (Youtube but only books) First Sentan
 
 Right now, the app uses a JSON file as its database, which it reads at startup. It's not the best setup for this kind of app since everyone plays the same quiz without the option to switch things up on the fly. Essentially, all users see the same content, and only their progress and preferences are stored in their web session. Maybe down the line, I'll revamp things to allow for multiple quizzes and users, but for now, that's how it rolls.
 
+![screenshot](./assets/screenshot.png)
+
 ## Config
 There is only one config file with 4 options. The config has to be in the app working dir and has to be named `config.toml`. The config options are listed below:
 

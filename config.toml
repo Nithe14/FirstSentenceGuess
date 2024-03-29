@@ -1,4 +1,4 @@
 bind_host = "0.0.0.0"
 bind_port = 8000
 db_file = "demo-db.json"
-#db_safe = false
+db_safe = true
