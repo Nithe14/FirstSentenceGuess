@@ -94,4 +94,4 @@ However, if you give up on guessing the book using the give-up button, you won't
 Currently, there isn't a button available to clear the web session, and the session itself doesn't clear automatically either. You'll need to use your browser's built-in tools to clear the cookies.
 
 ## Known Issues
-- #1 Refreshing a page takes user back to sentences view
+- [#1 Refreshing a page takes user back to sentences view](https://github.com/Nithe14/FirstSentenceGuess/issues/1)
