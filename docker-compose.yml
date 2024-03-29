@@ -1,0 +1,9 @@
+version: '3'
+services:
+  fsg:
+    image: ghcr.io/nithe14/fsg:latest
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./config.toml:/config.toml
+      #- ./db.json:/db.json #remember to add your database to config.toml also

@@ -1,5 +1,3 @@
 /target
 Cargo.lock
 node_modules
-Dockerfile
-docker-compose.yml
